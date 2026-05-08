@@ -577,6 +577,7 @@ function downloadFullPoemPNG() {
   link.href = canvas.toDataURL('image/png');
   link.click();
   showActionToast('\uD83D\uDDBC\uFE0F Puisi lengkap berhasil diunduh!');
+}
 
 // ===== Action Toast =====
 function showActionToast(msg) {
