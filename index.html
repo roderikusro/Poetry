@@ -39,12 +39,23 @@
         <span class="poem-count" id="poemCount"></span>
       </div>
       <div class="toolbar-right">
-        <button class="sort-btn active" id="sortNewBtn" onclick="sortPoems('newest')">
-          🕐 Terbaru
-        </button>
-        <button class="sort-btn" id="sortOldBtn" onclick="sortPoems('oldest')">
-          📅 Terlama
-        </button>
+        <div class="toolbar-group">
+          <button class="sort-btn active" id="sortNewBtn" onclick="sortPoems('newest')">
+            🕐 Terbaru
+          </button>
+          <button class="sort-btn" id="sortOldBtn" onclick="sortPoems('oldest')">
+            📅 Terlama
+          </button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="toolbar-group">
+          <button class="view-btn active" id="viewListBtn" onclick="setView('list')" title="Tampilan daftar">
+            ☰
+          </button>
+          <button class="view-btn" id="viewGridBtn" onclick="setView('grid')" title="Tampilan grid">
+            ▦
+          </button>
+        </div>
       </div>
     </div>
 
