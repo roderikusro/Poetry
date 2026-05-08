@@ -1315,51 +1315,59 @@ body::after {
    STANZA ACTIONS — Copy & Download
    ============================================= */
 
-/* Desktop: row layout — buttons sit to the right of the poem text */
+/* Desktop: column layout — buttons appear BELOW stanza, push content down */
 .poem-stanza-wrapper {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   gap: 0;
-  position: relative;
 }
 
-/* Stanza text fills center; stays visually centered */
+/* Stanza text: full width, centered */
 .poem-stanza-wrapper > .poem-stanza {
-  flex: 1;
+  width: 100%;
   text-align: center;
 }
 
-/* Buttons column — hidden, slides in from right on hover */
+/* Buttons row — hidden via max-height so they occupy flow space when shown */
 .stanza-actions {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px;
+  max-height: 0;
+  overflow: hidden;
   opacity: 0;
-  transform: translateX(10px);
-  transition: opacity 0.28s ease, transform 0.28s ease;
-  flex-shrink: 0;
-  margin-left: 16px;
+  margin-top: 0;
   pointer-events: none;
+  /* max-height drives the layout push; opacity for visual fade */
+  transition:
+    max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity    0.28s ease,
+    margin-top 0.28s ease;
 }
 
-.poem-stanza-wrapper:hover .stanza-actions {
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: all;
+/* Desktop hover → expand below stanza */
+@media (min-width: 769px) {
+  .poem-stanza-wrapper:hover .stanza-actions {
+    max-height: 60px;
+    opacity: 1;
+    margin-top: 14px;
+    pointer-events: all;
+  }
 }
 
 .stanza-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 14px;
+  padding: 7px 18px;
   border-radius: 50px;
   border: 1.5px solid rgba(255, 182, 213, 0.35);
-  background: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.8);
   backdrop-filter: blur(10px);
   font-family: 'Quicksand', sans-serif;
-  font-size: 0.76rem;
+  font-size: 0.78rem;
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
@@ -1369,8 +1377,8 @@ body::after {
 }
 
 .stanza-btn:hover {
-  transform: translateX(2px);
-  box-shadow: 0 5px 16px rgba(212, 107, 158, 0.18);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(212, 107, 158, 0.18);
 }
 
 .copy-btn:hover {
@@ -1426,54 +1434,33 @@ body::after {
    MOBILE OVERRIDE — tap to toggle
    ============================================= */
 @media (max-width: 768px) {
-  /* Stack vertically on mobile */
   .poem-stanza-wrapper {
-    flex-direction: column;
     cursor: pointer;
   }
 
-  /* Buttons below the stanza, hidden by default */
+  /* Buttons below stanza, hidden by default */
   .stanza-actions {
-    flex-direction: row;
-    justify-content: center;
-    opacity: 0;
-    transform: translateY(-6px);
     max-height: 0;
-    overflow: hidden;
-    margin-left: 0;
+    opacity: 0;
     margin-top: 0;
-    gap: 10px;
     pointer-events: none;
-    transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease, margin-top 0.3s ease;
+    transition:
+      max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity    0.28s ease,
+      margin-top 0.28s ease;
   }
 
   /* Revealed on tap (.active set by JS) */
   .poem-stanza-wrapper.active .stanza-actions {
-    opacity: 1;
-    transform: translateY(0);
     max-height: 60px;
+    opacity: 1;
     margin-top: 12px;
     pointer-events: all;
   }
 
-  /* Cancel hover rule on mobile */
-  .poem-stanza-wrapper:hover .stanza-actions {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .poem-stanza-wrapper.active:hover .stanza-actions {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  /* Tap hint — subtle ring flash on active stanza */
+  /* Active stanza: subtle accent tint as tap feedback */
   .poem-stanza-wrapper.active > .poem-stanza {
     color: var(--text-accent);
     transition: color 0.25s ease;
-  }
-
-  .stanza-btn {
-    padding: 7px 14px;
-    font-size: 0.76rem;
   }
 }
