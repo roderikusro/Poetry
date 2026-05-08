@@ -344,7 +344,7 @@ function resetForm() {
   document.getElementById('formStatus').textContent = '';
 }
 
-// ===== Settings: Export =====
+// ===== Settings: Export JSON (backup) =====
 function exportData() {
   const data = getPoems();
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -355,7 +355,7 @@ function exportData() {
   URL.revokeObjectURL(link.href);
 }
 
-// ===== Settings: Import =====
+// ===== Settings: Import JSON =====
 function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -373,7 +373,7 @@ function importData(event) {
     }
   };
   reader.readAsText(file);
-  event.target.value = ''; // Reset file input
+  event.target.value = '';
 }
 
 // ===== Settings: Reset =====
@@ -383,4 +383,101 @@ function resetToDefaults() {
   renderStats();
   renderAdminPoemList();
   alert('✅ Data berhasil direset ke default.');
+}
+
+// ===== PUBLISH: Generate data.js for GitHub =====
+function publishToFile() {
+  const all = getPoems();
+
+  // Build each poem as a JS object string
+  const poemsStr = all.map(p => {
+    let obj = `  {\n`;
+    obj += `    id: ${p.id},\n`;
+    obj += `    title: ${JSON.stringify(p.title)},\n`;
+    obj += `    author: ${JSON.stringify(p.author)},\n`;
+    obj += `    emoji: ${JSON.stringify(p.emoji)},\n`;
+    obj += `    date: ${JSON.stringify(p.date)},\n`;
+    obj += `    tags: [${p.tags.map(t => `{ label: ${JSON.stringify(t.label)}, icon: ${JSON.stringify(t.icon)}, type: ${JSON.stringify(t.type)} }`).join(', ')}],\n`;
+    obj += `    excerpt: ${JSON.stringify(p.excerpt)},\n`;
+    if (p.isPrivate) {
+      obj += `    isPrivate: true,\n`;
+      obj += `    password: ${JSON.stringify(p.password)},\n`;
+    }
+    obj += `    stanzas: [\n`;
+    obj += p.stanzas.map(s => `      ${JSON.stringify(s)}`).join(',\n');
+    obj += `\n    ],\n`;
+    obj += `    songIndex: ${p.songIndex || 0}\n`;
+    obj += `  }`;
+    return obj;
+  }).join(',\n');
+
+  const fileContent = `// ===== Shared Poem & Song Data =====
+
+// Default poems (shipped with the site)
+const defaultPoems = [
+${poemsStr}
+];
+
+const songs = [
+  { title: "Morning Light", artist: "Ambient Dreams", icon: "🌅", melody: "morning" },
+  { title: "Raindrops Lullaby", artist: "Nature Sounds", icon: "🌧️", melody: "rain" },
+  { title: "Starry Night Waltz", artist: "Moonlit Piano", icon: "🌙", melody: "starry" },
+  { title: "Cherry Blossom Breeze", artist: "Sakura Melodies", icon: "🌸", melody: "cherry" }
+];
+
+// ===== Admin Config =====
+const ADMIN_PASSWORD = ${JSON.stringify(ADMIN_PASSWORD)};
+const STORAGE_KEY = "roderikus_poems";
+
+// ===== Data Layer — merges defaults with localStorage =====
+function getPoems() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored) {
+    try { return JSON.parse(stored); } catch (e) { /* fallback */ }
+  }
+  return [...defaultPoems];
+}
+
+function savePoems(poemArr) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(poemArr));
+}
+
+function getNextId() {
+  const all = getPoems();
+  return all.length > 0 ? Math.max(...all.map(p => p.id)) + 1 : 1;
+}
+
+// Live poems array (used by home.js, script.js)
+const poems = getPoems();
+
+// ===== Utility =====
+function formatDate(dateStr) {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+  const d = new Date(dateStr);
+  return \`\${d.getDate()} \${months[d.getMonth()]} \${d.getFullYear()}\`;
+}
+
+function getPoemById(id) {
+  return poems.find(p => p.id === parseInt(id));
+}
+
+// ===== Available Tags =====
+const availableTags = [
+  { label: "Cinta", icon: "💕", type: "love" },
+  { label: "Alam", icon: "🌿", type: "nature" },
+  { label: "Mimpi", icon: "✨", type: "dream" },
+  { label: "Harapan", icon: "🌟", type: "hope" }
+];
+
+// ===== Available Emojis =====
+const availableEmojis = ["🌙", "🌻", "💌", "🌧️", "🦋", "🌸", "🔥", "🌹", "☀️", "🍂", "🌈", "💫", "🌊", "🎭", "📝", "🕊️"];
+`;
+
+  const blob = new Blob([fileContent], { type: 'application/javascript' });
+  const link = document.createElement('a');
+  link.download = 'data.js';
+  link.href = URL.createObjectURL(blob);
+  link.click();
+  URL.revokeObjectURL(link.href);
+  alert('✅ File data.js berhasil diunduh!\\n\\nLangkah selanjutnya:\\n1. Replace file data.js di folder project\\n2. Jalankan: git add . → git commit → git push\\n3. Semua device akan melihat perubahan!');
 }
