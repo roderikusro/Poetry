@@ -79,6 +79,19 @@ const defaultPoems = [
       "Langkahmu mungkin kecil dan pelan,\nTapi setiap satu langkah bermakna,\nKarena perjalanan seribu mil,\nDimulai dari satu tekad yang nyata."
     ],
     songIndex: 0
+  },
+  {
+    id: 6,
+    title: "pjkjk",
+    author: "Anonim",
+    emoji: "🌧️",
+    date: "2026-05-08",
+    tags: [{ label: "Cinta", icon: "💕", type: "love" }],
+    excerpt: "kjkljkj kk",
+    stanzas: [
+      "njkhkh"
+    ],
+    songIndex: 0
   }
 ];
 
