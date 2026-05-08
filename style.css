@@ -1529,3 +1529,735 @@ body::after {
     transition: color 0.25s ease;
   }
 }
+
+/* =============================================
+   ADMIN FOOTER LINK (Home Page)
+   ============================================= */
+.footer-admin-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  opacity: 0.5;
+  transition: var(--transition);
+}
+
+.footer-admin-link:hover {
+  opacity: 1;
+  color: var(--text-accent);
+}
+
+/* =============================================
+   ADMIN PANEL STYLES
+   ============================================= */
+
+/* Login Screen */
+.admin-login-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-login-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 182, 213, 0.25);
+  border-radius: var(--radius);
+  padding: 48px 40px;
+  text-align: center;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: var(--shadow-hover);
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.admin-login-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  animation: bounce 2.5s ease-in-out infinite;
+}
+
+.admin-login-title {
+  font-family: 'Dancing Script', cursive;
+  font-size: 2.2rem;
+  background: linear-gradient(135deg, var(--pink-dark), var(--lavender-dark));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.admin-login-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 24px;
+}
+
+.admin-login-form {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-login-error {
+  font-size: 0.8rem;
+  color: #ff5c8a;
+  margin-top: 12px;
+  min-height: 20px;
+}
+
+.admin-back-link {
+  display: inline-block;
+  margin-top: 20px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.admin-back-link:hover {
+  color: var(--pink-dark);
+}
+
+/* Nav */
+.admin-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 182, 213, 0.2);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.admin-nav-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-logo {
+  font-size: 1.5rem;
+}
+
+.admin-nav-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem;
+  color: var(--text-accent);
+  font-weight: 600;
+}
+
+.admin-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-nav-link {
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 50px;
+  transition: var(--transition);
+}
+
+.admin-nav-link:hover {
+  color: var(--pink-dark);
+  background: var(--pink-light);
+}
+
+.admin-logout-btn {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 182, 213, 0.3);
+  background: transparent;
+  cursor: pointer;
+  font-family: 'Quicksand', sans-serif;
+  transition: var(--transition);
+}
+
+.admin-logout-btn:hover {
+  background: rgba(255, 92, 138, 0.1);
+  border-color: #ff5c8a;
+  color: #ff5c8a;
+}
+
+/* Container */
+.admin-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 30px 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Stats */
+.admin-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.admin-stat-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 182, 213, 0.2);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  text-align: center;
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.stat-icon {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+}
+
+.stat-number {
+  font-family: 'Caveat', cursive;
+  font-size: 2.2rem;
+  font-weight: 700;
+  color: var(--text-accent);
+}
+
+.stat-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+/* Tabs */
+.admin-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  padding: 10px 20px;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 182, 213, 0.3);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-tab:hover {
+  border-color: var(--pink);
+  color: var(--text-accent);
+}
+
+.admin-tab.active {
+  background: linear-gradient(135deg, var(--pink-dark), var(--lavender-dark));
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(255, 126, 179, 0.25);
+}
+
+/* Tab Content */
+.admin-tab-content {
+  display: none;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.admin-tab-content.active {
+  display: block;
+}
+
+/* Poem List (Admin) */
+.admin-poem-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 182, 213, 0.2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-soft);
+  transition: var(--transition);
+  gap: 12px;
+}
+
+.admin-poem-item:hover {
+  border-color: rgba(255, 182, 213, 0.4);
+  box-shadow: var(--shadow-hover);
+}
+
+.admin-poem-info {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-poem-emoji {
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.admin-poem-details {
+  min-width: 0;
+}
+
+.admin-poem-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-accent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-badge-private {
+  font-size: 0.75rem;
+}
+
+.admin-poem-meta {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+}
+
+.admin-poem-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.admin-icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 182, 213, 0.25);
+  background: var(--bg-card);
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.admin-icon-btn.edit-btn:hover {
+  background: var(--lavender-light);
+  border-color: var(--lavender);
+}
+
+.admin-icon-btn.delete-btn:hover {
+  background: rgba(255, 92, 138, 0.12);
+  border-color: #ff5c8a;
+}
+
+.admin-empty {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-secondary);
+}
+
+.admin-empty-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+}
+
+/* Form Card */
+.admin-form-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 182, 213, 0.2);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+  box-shadow: var(--shadow-soft);
+}
+
+.admin-form-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.6rem;
+  color: var(--text-accent);
+  margin-bottom: 24px;
+}
+
+.admin-field {
+  margin-bottom: 18px;
+}
+
+.admin-field-row {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.admin-field-row .admin-field {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.admin-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.admin-label-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.admin-checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--pink-dark);
+  cursor: pointer;
+}
+
+.admin-input {
+  width: 100%;
+  padding: 11px 18px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 182, 213, 0.35);
+  background: rgba(255, 255, 255, 0.8);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: var(--transition);
+}
+
+.admin-input:focus {
+  border-color: var(--pink-dark);
+  box-shadow: 0 0 0 3px rgba(255, 126, 179, 0.12);
+}
+
+.admin-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238a7a9a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  padding-right: 40px;
+}
+
+.admin-textarea {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid rgba(255, 182, 213, 0.35);
+  background: rgba(255, 255, 255, 0.8);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  outline: none;
+  resize: vertical;
+  transition: var(--transition);
+  line-height: 1.7;
+}
+
+.admin-textarea:focus {
+  border-color: var(--pink-dark);
+  box-shadow: 0 0 0 3px rgba(255, 126, 179, 0.12);
+}
+
+/* Emoji Picker */
+.emoji-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.emoji-option {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(255, 182, 213, 0.25);
+  background: rgba(255, 255, 255, 0.6);
+  font-size: 1.2rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.emoji-option:hover {
+  border-color: var(--pink);
+  transform: scale(1.1);
+}
+
+.emoji-option.selected {
+  border-color: var(--pink-dark);
+  background: var(--pink-light);
+  box-shadow: 0 2px 8px rgba(255, 126, 179, 0.2);
+  transform: scale(1.1);
+}
+
+/* Tag Picker */
+.tag-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tag-option {
+  padding: 7px 16px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 182, 213, 0.3);
+  background: rgba(255, 255, 255, 0.6);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tag-option:hover {
+  border-color: var(--pink);
+  color: var(--text-accent);
+}
+
+.tag-option.selected {
+  background: linear-gradient(135deg, var(--pink-dark), var(--lavender-dark));
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(255, 126, 179, 0.2);
+}
+
+/* Stanza Field */
+.admin-stanza-field {
+  margin-bottom: 12px;
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.stanza-field-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.stanza-field-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* Divider */
+.admin-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 182, 213, 0.35), transparent);
+  margin: 24px 0;
+}
+
+/* Buttons */
+.admin-primary-btn {
+  padding: 12px 28px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, var(--pink-dark), var(--lavender-dark));
+  color: white;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(255, 126, 179, 0.3);
+}
+
+.admin-primary-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(255, 126, 179, 0.4);
+}
+
+.admin-secondary-btn {
+  padding: 10px 22px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 182, 213, 0.35);
+  background: rgba(255, 255, 255, 0.6);
+  color: var(--text-secondary);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-secondary-btn:hover {
+  border-color: var(--pink);
+  color: var(--text-accent);
+}
+
+.admin-danger-btn {
+  padding: 10px 22px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255, 92, 138, 0.35);
+  background: rgba(255, 92, 138, 0.06);
+  color: #ff5c8a;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.admin-danger-btn:hover {
+  background: rgba(255, 92, 138, 0.15);
+  border-color: #ff5c8a;
+}
+
+/* Form Actions */
+.admin-form-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.admin-form-status {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-height: 22px;
+}
+
+.admin-form-status.success {
+  color: #3db88c;
+}
+
+.admin-form-status.error {
+  color: #ff5c8a;
+}
+
+/* Settings */
+.admin-setting-group {
+  margin-bottom: 4px;
+}
+
+.admin-setting-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.2rem;
+  color: var(--text-accent);
+  margin-bottom: 6px;
+}
+
+.admin-setting-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+.admin-setting-desc code {
+  background: var(--lavender-light);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  color: var(--lavender-dark);
+}
+
+.admin-setting-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.admin-file-label {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* ===== Admin Responsive ===== */
+@media (max-width: 600px) {
+  .admin-login-card {
+    padding: 36px 24px;
+  }
+
+  .admin-login-form {
+    flex-direction: column;
+  }
+
+  .admin-nav {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+
+  .admin-stats {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .admin-stat-card {
+    padding: 14px 10px;
+  }
+
+  .stat-number {
+    font-size: 1.6rem;
+  }
+
+  .admin-tabs {
+    gap: 4px;
+  }
+
+  .admin-tab {
+    padding: 8px 14px;
+    font-size: 0.76rem;
+  }
+
+  .admin-poem-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .admin-poem-actions {
+    align-self: flex-end;
+  }
+
+  .admin-field-row {
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .admin-field-row .admin-field {
+    margin-bottom: 18px;
+  }
+
+  .admin-form-card {
+    padding: 24px 18px;
+  }
+}

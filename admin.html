@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Admin Dashboard — Roderikus Poem">
+  <title>🔐 Admin — Roderikus Poem</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- Floating Decorations -->
+  <div class="floating-decorations">
+    <span class="floating-item">🌸</span>
+    <span class="floating-item">✨</span>
+    <span class="floating-item">🦋</span>
+    <span class="floating-item">💫</span>
+    <span class="floating-item">🌷</span>
+    <span class="floating-item">🍃</span>
+    <span class="floating-item">💖</span>
+    <span class="floating-item">⭐</span>
+  </div>
+
+  <!-- Login Screen -->
+  <div class="admin-login-screen" id="loginScreen">
+    <div class="admin-login-card">
+      <div class="admin-login-icon">🔐</div>
+      <h1 class="admin-login-title">Admin Panel</h1>
+      <p class="admin-login-subtitle">Masukkan kata sandi admin</p>
+      <div class="admin-login-form">
+        <input type="password" class="admin-input" id="adminPassword"
+          placeholder="Kata sandi..."
+          onkeydown="if(event.key==='Enter') adminLogin()">
+        <button class="admin-primary-btn" onclick="adminLogin()">🔑 Masuk</button>
+      </div>
+      <div class="admin-login-error" id="loginError"></div>
+      <a href="index.html" class="admin-back-link">← Kembali ke beranda</a>
+    </div>
+  </div>
+
+  <!-- Dashboard (hidden until login) -->
+  <div class="admin-dashboard" id="adminDashboard" style="display:none">
+
+    <!-- Admin Nav -->
+    <nav class="admin-nav">
+      <div class="admin-nav-left">
+        <span class="admin-logo">🌸</span>
+        <span class="admin-nav-title">Admin Panel</span>
+      </div>
+      <div class="admin-nav-right">
+        <a href="index.html" class="admin-nav-link">🏠 Beranda</a>
+        <button class="admin-logout-btn" onclick="adminLogout()">🚪 Keluar</button>
+      </div>
+    </nav>
+
+    <!-- Stats Cards -->
+    <div class="admin-container">
+      <div class="admin-stats" id="adminStats">
+        <!-- Filled by JS -->
+      </div>
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="admin-tab active" data-tab="poems" onclick="switchTab('poems')">📝 Kelola Puisi</button>
+        <button class="admin-tab" data-tab="create" onclick="switchTab('create')">➕ Puisi Baru</button>
+        <button class="admin-tab" data-tab="settings" onclick="switchTab('settings')">⚙️ Pengaturan</button>
+      </div>
+
+      <!-- Tab: Poems List -->
+      <div class="admin-tab-content active" id="tab-poems">
+        <div class="admin-poem-list" id="adminPoemList">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Tab: Create/Edit Poem -->
+      <div class="admin-tab-content" id="tab-create">
+        <div class="admin-form-card">
+          <h2 class="admin-form-title" id="formTitle">✨ Buat Puisi Baru</h2>
+
+          <input type="hidden" id="editPoemId" value="">
+
+          <div class="admin-field">
+            <label class="admin-label">Judul Puisi</label>
+            <input type="text" class="admin-input" id="poemTitle" placeholder="Masukkan judul puisi...">
+          </div>
+
+          <div class="admin-field">
+            <label class="admin-label">Penulis</label>
+            <input type="text" class="admin-input" id="poemAuthor" placeholder="Nama penulis..." value="Anonim">
+          </div>
+
+          <div class="admin-field-row">
+            <div class="admin-field">
+              <label class="admin-label">Emoji</label>
+              <div class="emoji-picker" id="emojiPicker">
+                <!-- Filled by JS -->
+              </div>
+              <input type="hidden" id="poemEmoji" value="🌸">
+            </div>
+            <div class="admin-field">
+              <label class="admin-label">Tanggal</label>
+              <input type="date" class="admin-input" id="poemDate">
+            </div>
+          </div>
+
+          <div class="admin-field">
+            <label class="admin-label">Tags</label>
+            <div class="tag-picker" id="tagPicker">
+              <!-- Filled by JS -->
+            </div>
+          </div>
+
+          <div class="admin-field">
+            <label class="admin-label">Musik Latar</label>
+            <select class="admin-input admin-select" id="poemSong">
+              <!-- Filled by JS -->
+            </select>
+          </div>
+
+          <div class="admin-field">
+            <label class="admin-label">Kutipan / Cuplikan</label>
+            <input type="text" class="admin-input" id="poemExcerpt" placeholder="Kalimat pembuka untuk preview...">
+          </div>
+
+          <div class="admin-field" id="stanzasContainer">
+            <label class="admin-label">Bait Puisi</label>
+            <!-- Stanza editors filled by JS -->
+          </div>
+          <button class="admin-secondary-btn" onclick="addStanzaField()">+ Tambah Bait</button>
+
+          <div class="admin-divider"></div>
+
+          <div class="admin-field">
+            <label class="admin-label-row">
+              <input type="checkbox" id="poemPrivate" class="admin-checkbox" onchange="togglePrivateFields()">
+              <span>🔒 Jadikan puisi pribadi (butuh password)</span>
+            </label>
+          </div>
+
+          <div class="admin-field private-fields" id="privateFields" style="display:none">
+            <label class="admin-label">Password Puisi</label>
+            <input type="text" class="admin-input" id="poemPassword" placeholder="Password untuk membuka puisi...">
+          </div>
+
+          <div class="admin-divider"></div>
+
+          <div class="admin-form-actions">
+            <button class="admin-primary-btn" onclick="savePoem()">💾 Simpan Puisi</button>
+            <button class="admin-secondary-btn" onclick="resetForm()">🔄 Reset</button>
+          </div>
+
+          <div class="admin-form-status" id="formStatus"></div>
+        </div>
+      </div>
+
+      <!-- Tab: Settings -->
+      <div class="admin-tab-content" id="tab-settings">
+        <div class="admin-form-card">
+          <h2 class="admin-form-title">⚙️ Pengaturan</h2>
+
+          <div class="admin-setting-group">
+            <h3 class="admin-setting-title">📦 Data</h3>
+            <p class="admin-setting-desc">Ekspor dan impor data puisi dalam format JSON.</p>
+            <div class="admin-setting-actions">
+              <button class="admin-secondary-btn" onclick="exportData()">📤 Ekspor JSON</button>
+              <label class="admin-secondary-btn admin-file-label">
+                📥 Impor JSON
+                <input type="file" accept=".json" id="importFile" onchange="importData(event)" style="display:none">
+              </label>
+            </div>
+          </div>
+
+          <div class="admin-divider"></div>
+
+          <div class="admin-setting-group">
+            <h3 class="admin-setting-title">🗑️ Reset Data</h3>
+            <p class="admin-setting-desc">Kembalikan semua puisi ke data bawaan (default). Puisi yang ditambahkan lewat admin akan dihapus.</p>
+            <button class="admin-danger-btn" onclick="resetToDefaults()">⚠️ Reset ke Default</button>
+          </div>
+
+          <div class="admin-divider"></div>
+
+          <div class="admin-setting-group">
+            <h3 class="admin-setting-title">🔑 Ubah Password Admin</h3>
+            <p class="admin-setting-desc">Password admin tersimpan di data.js. Ubah langsung di file <code>data.js</code> variabel <code>ADMIN_PASSWORD</code>.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" style="margin-top: 40px;">
+      <p>🔐 Admin Panel — Roderikus Poem</p>
+    </footer>
+
+  </div>
+
+  <script src="data.js"></script>
+  <script src="admin.js"></script>
+</body>
+
+</html>
