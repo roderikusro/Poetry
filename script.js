@@ -18,11 +18,11 @@ function renderPoem() {
     return;
   }
 
-  // Update page title
   document.title = `🌸 ${poem.title} — Taman Puisi`;
 
   // Header
   document.getElementById('poemHeader').innerHTML = `
+    ${poem.isPrivate ? '<div class="poem-private-badge">🔒 Puisi Pribadi</div>' : ''}
     <div class="poem-page-emoji">${poem.emoji}</div>
     <h1 class="poem-page-title">${poem.title}</h1>
     <div class="poem-page-meta">
@@ -35,9 +35,33 @@ function renderPoem() {
   `;
 
   // Body - stanzas
-  document.getElementById('poemBody').innerHTML = poem.stanzas.map(stanza =>
+  const stanzasHTML = poem.stanzas.map(stanza =>
     `<div class="poem-stanza">${stanza.replace(/\n/g, '<br>')}</div>`
   ).join('<div class="stanza-divider">✿</div>');
+
+  if (poem.isPrivate) {
+    document.getElementById('poemBody').innerHTML = stanzasHTML;
+    document.getElementById('poemBody').classList.add('poem-body-blurred', 'poem-locked-overlay');
+    // Inject lock banner
+    const banner = document.createElement('div');
+    banner.className = 'poem-lock-banner';
+    banner.id = 'lockBanner';
+    banner.innerHTML = `
+      <div class="lock-icon-big">🔐</div>
+      <div class="lock-title">Puisi Pribadi</div>
+      <p class="lock-hint">Masukkan kata sandi untuk membuka puisi ini</p>
+      <div class="password-row">
+        <input type="password" class="password-input" id="passwordInput"
+          placeholder="Kata sandi..."
+          onkeydown="if(event.key==='Enter') tryUnlock()">
+        <button class="unlock-btn" onclick="tryUnlock()">🔑 Buka</button>
+      </div>
+      <div class="unlock-error" id="unlockError"></div>
+    `;
+    document.getElementById('poemBody').appendChild(banner);
+  } else {
+    document.getElementById('poemBody').innerHTML = stanzasHTML;
+  }
 
   // Footer
   document.getElementById('poemFooter').innerHTML = `
@@ -51,11 +75,54 @@ function renderPoem() {
     </div>
   `;
 
-  // Set default song for this poem
   currentSongIndex = poem.songIndex || 0;
   initSongList();
   updatePlayerUI();
 }
+
+// ===== Private Poem — Unlock =====
+function tryUnlock() {
+  const input = document.getElementById('passwordInput');
+  const errorEl = document.getElementById('unlockError');
+  const entered = input.value.trim();
+
+  if (entered === poem.password) {
+    // Unlock!
+    document.getElementById('poemBody').classList.add('unlocked');
+    const banner = document.getElementById('lockBanner');
+    banner.classList.add('hidden');
+    showUnlockToast();
+    // Auto remove banner after animation
+    setTimeout(() => banner.remove(), 500);
+  } else {
+    // Wrong password — shake effect
+    input.classList.remove('error');
+    void input.offsetWidth; // reflow
+    input.classList.add('error');
+    errorEl.textContent = '❌ Kata sandi salah. Coba lagi!';
+    setTimeout(() => {
+      input.classList.remove('error');
+      errorEl.textContent = '';
+    }, 2000);
+    input.value = '';
+    input.focus();
+  }
+}
+
+function showUnlockToast() {
+  const toast = document.createElement('div');
+  toast.className = 'unlock-success-toast';
+  toast.textContent = '✨ Puisi berhasil dibuka!';
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => toast.classList.add('show'));
+  });
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 2500);
+}
+
 
 function getPrevPoem() {
   const sorted = [...poems].sort((a, b) => new Date(b.date) - new Date(a.date));

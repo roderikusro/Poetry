@@ -36,6 +36,8 @@ const poems = [
     date: "2026-03-08",
     tags: [{ label: "Cinta", icon: "💕", type: "love" }, { label: "Mimpi", icon: "✨", type: "dream" }],
     excerpt: "Ada kata yang tak pernah terucap, tersimpan rapi di lembar hati...",
+    isPrivate: true,
+    password: "cinta123",
     stanzas: [
       "Ada kata yang tak pernah terucap,\nTersimpan rapi di lembar hati,\nSeperti surat yang tak pernah sampai,\nTapi selalu ditulis setiap hari.",
       "Jika angin bisa membawa pesan,\nAkan kukirimkan seribu rindu,\nAgar kau tahu di balik keheningan,\nAda cinta yang tumbuh untukmu."
@@ -65,6 +67,8 @@ const poems = [
     date: "2026-05-01",
     tags: [{ label: "Harapan", icon: "🌟", type: "hope" }, { label: "Cinta", icon: "💕", type: "love" }],
     excerpt: "Setiap langkah pertama adalah keberanian, setiap jatuh adalah pelajaran...",
+    isPrivate: true,
+    password: "harapan456",
     stanzas: [
       "Setiap langkah pertama adalah keberanian,\nSetiap jatuh adalah pelajaran berharga,\nSeperti kupu-kupu meninggalkan kepompong,\nKita terlahir kembali dalam keindahan.",
       "Jangan takut pada jalan yang gelap,\nKarena bintang hanya terlihat di malam,\nDan bunga yang paling indah,\nTumbuh dari tanah yang pernah retak.",

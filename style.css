@@ -1063,3 +1063,198 @@ body::after {
     max-width: 100%;
   }
 }
+
+/* =============================================
+   PRIVATE POEM STYLES
+   ============================================= */
+
+/* Home card — private badge */
+.poem-list-top-right {
+  display: flex; align-items: center; gap: 8px;
+}
+
+.private-badge {
+  font-size: 0.72rem; font-weight: 700;
+  padding: 4px 12px; border-radius: 50px;
+  background: linear-gradient(135deg, rgba(255,182,213,0.3), rgba(212,184,255,0.3));
+  border: 1px solid rgba(255,126,179,0.3);
+  color: var(--pink-dark);
+  letter-spacing: 0.3px;
+}
+
+/* Home card — blurred excerpt */
+.poem-list-excerpt--blurred {
+  filter: blur(5px);
+  user-select: none;
+  transition: filter 0.4s ease;
+}
+
+/* Home card — private card glow */
+.poem-list-card--private {
+  border-color: rgba(255, 126, 179, 0.35) !important;
+}
+.poem-list-card--private::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, rgba(255,182,213,0.05), rgba(212,184,255,0.05));
+  pointer-events: none;
+}
+
+/* ===== Poem Page — Blur Overlay ===== */
+.poem-locked-overlay {
+  position: relative;
+}
+
+.poem-body-blurred .poem-stanza,
+.poem-body-blurred .stanza-divider {
+  filter: blur(8px);
+  user-select: none;
+  transition: filter 0.6s ease;
+}
+
+.poem-body-blurred.unlocked .poem-stanza,
+.poem-body-blurred.unlocked .stanza-divider {
+  filter: blur(0);
+}
+
+/* Lock banner inside poem body */
+.poem-lock-banner {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  text-align: center;
+  padding: 28px 32px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,126,179,0.3);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  width: 90%; max-width: 320px;
+  transition: var(--transition);
+}
+
+.poem-lock-banner.hidden {
+  opacity: 0; pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.9);
+}
+
+.lock-icon-big {
+  font-size: 2.4rem; margin-bottom: 10px;
+  display: inline-block;
+  animation: lockWiggle 3s ease-in-out infinite;
+}
+
+@keyframes lockWiggle {
+  0%, 100% { transform: rotate(0deg); }
+  10% { transform: rotate(-8deg); }
+  20% { transform: rotate(8deg); }
+  30% { transform: rotate(0deg); }
+}
+
+.lock-title {
+  font-family: 'Caveat', cursive;
+  font-size: 1.3rem; color: var(--text-accent);
+  margin-bottom: 6px;
+}
+
+.lock-hint {
+  font-size: 0.78rem; color: var(--text-secondary);
+  margin-bottom: 16px; line-height: 1.5;
+}
+
+/* Password input row */
+.password-row {
+  display: flex; gap: 8px;
+}
+
+.password-input {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: 50px;
+  border: 1.5px solid rgba(255,182,213,0.4);
+  background: rgba(255,255,255,0.8);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.88rem; color: var(--text-primary);
+  outline: none;
+  transition: var(--transition);
+  letter-spacing: 1px;
+}
+
+.password-input:focus {
+  border-color: var(--pink-dark);
+  box-shadow: 0 0 0 3px rgba(255,126,179,0.15);
+}
+
+.password-input.error {
+  border-color: #ff5c8a;
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.unlock-btn {
+  padding: 10px 18px;
+  border-radius: 50px;
+  border: none;
+  background: linear-gradient(135deg, var(--pink-dark), var(--lavender-dark));
+  color: white;
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.88rem; font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 12px rgba(255,126,179,0.3);
+  white-space: nowrap;
+}
+
+.unlock-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 18px rgba(255,126,179,0.4);
+}
+
+.unlock-error {
+  font-size: 0.75rem; color: #ff5c8a;
+  margin-top: 10px; height: 16px;
+  transition: opacity 0.3s;
+}
+
+/* Unlock success celebration */
+.unlock-success-toast {
+  position: fixed;
+  top: 30px; left: 50%;
+  transform: translateX(-50%) translateY(-80px);
+  background: linear-gradient(135deg, var(--pink-dark), var(--lavender-dark));
+  color: white;
+  padding: 12px 28px;
+  border-radius: 50px;
+  font-size: 0.9rem; font-weight: 600;
+  box-shadow: 0 8px 24px rgba(255,126,179,0.35);
+  z-index: 300;
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.unlock-success-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Private indicator on poem page header */
+.poem-private-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; font-weight: 700;
+  padding: 5px 16px; border-radius: 50px;
+  background: linear-gradient(135deg, rgba(255,182,213,0.25), rgba(212,184,255,0.25));
+  border: 1px solid rgba(255,126,179,0.3);
+  color: var(--pink-dark);
+  margin-bottom: 12px;
+}
