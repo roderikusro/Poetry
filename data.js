@@ -59,7 +59,7 @@ const defaultPoems = [
       "Kuambil benih yang ada di hati kamu.\nKusimpan dalam lemari kosong.\nKutersirat bisa mengambil jika butuh.",
       "Namun, siapa menyangka seminggu kemudian.\nBenih itu tumbuh di lemari.\nBungannya pink memenuhi lemari.\nBuahnya biru, dengan banyak motif.",
       "Rasa buahnya tidak bisa ditebak\nBisa manis, dan pahit.\nBiji buahnya mirip dengan bentuk mahkota.",
-      "Benih yang dianggap aneh itu.\nBuahnya memiliki kemampuan.\nKemampuan untuk pengisi ruang gelap.\nPenyembuh dari luka yang sengaja ditutupi.\nKunamain obat itu."
+      "Benih yang dianggap aneh itu.\nBuahnya memiliki kemampuan.\nKemampuan untuk pengisi ruang gelap.\nPenyembuh dari luka yang sengaja ditutupi.\nKunamain obat itu \"Shofia\""
     ],
     songIndex: 1
   },
