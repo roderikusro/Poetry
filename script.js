@@ -18,7 +18,7 @@ function renderPoem() {
     return;
   }
 
-  document.title = `🌸 ${poem.title} — Taman Puisi`;
+  document.title = `🪶 ${poem.title} — Taman Puisi`;
 
   // Header
   document.getElementById('poemHeader').innerHTML = `
@@ -384,19 +384,22 @@ function downloadStanzaPNG(idx) {
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // ---- Background: warm cream ----
-  ctx.fillStyle = '#fefcfb';
+  // ---- Background: dark navy ----
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, '#1a1528');
+  bgGrad.addColorStop(1, '#13101e');
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, W, H);
 
   // ---- Outer border ----
-  ctx.strokeStyle = '#eddde8';
+  ctx.strokeStyle = '#2e2840';
   ctx.lineWidth = 1;
   ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
 
   // ---- Top accent bar (gradient) ----
   const accentGrad = ctx.createLinearGradient(0, 0, W, 0);
-  accentGrad.addColorStop(0, '#ff7eb3');
-  accentGrad.addColorStop(1, '#b388ff');
+  accentGrad.addColorStop(0, '#d4a574');
+  accentGrad.addColorStop(1, '#8b7ec8');
   ctx.fillStyle = accentGrad;
   ctx.fillRect(0, 0, W, 4);
 
@@ -407,13 +410,13 @@ function downloadStanzaPNG(idx) {
   // ---- Opening quote mark ----
   ctx.textAlign = 'left';
   ctx.font = 'bold 64px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#f5c2d8';
+  ctx.fillStyle = 'rgba(212,165,116,0.3)';
   ctx.fillText('\u201C', 44, 78);
 
   // ---- Stanza text (centered) ----
   ctx.textAlign = 'center';
   ctx.font = '400 22px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#4a3a5a';
+  ctx.fillStyle = '#e0d8ec';
   const startY = H / 2 - (textH / 2) + LINE_H * 0.6;
   lines.forEach((line, i) => {
     ctx.fillText(line, W / 2, startY + i * LINE_H);
@@ -422,14 +425,14 @@ function downloadStanzaPNG(idx) {
   // ---- Closing quote mark ----
   ctx.textAlign = 'right';
   ctx.font = 'bold 64px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#d4b8ff';
+  ctx.fillStyle = 'rgba(139,126,200,0.3)';
   ctx.fillText('\u201D', W - 44, H - 68);
 
   // ---- Thin divider line ----
   const divGrad = ctx.createLinearGradient(100, 0, W - 100, 0);
   divGrad.addColorStop(0, 'transparent');
-  divGrad.addColorStop(0.3, '#f0cce0');
-  divGrad.addColorStop(0.7, '#ddc8f5');
+  divGrad.addColorStop(0.3, '#3a3050');
+  divGrad.addColorStop(0.7, '#3a3050');
   divGrad.addColorStop(1, 'transparent');
   ctx.strokeStyle = divGrad;
   ctx.lineWidth = 1;
@@ -441,12 +444,12 @@ function downloadStanzaPNG(idx) {
   // ---- Credit: author · title ----
   ctx.textAlign = 'center';
   ctx.font = 'italic 14px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#b07898';
+  ctx.fillStyle = '#9a8fb0';
   ctx.fillText(`\u2014 ${poem.author}  \u00B7  ${poem.title}`, W / 2, H - 34);
 
   // ---- Watermark ----
   ctx.font = '11px Arial, sans-serif';
-  ctx.fillStyle = 'rgba(180,140,170,0.35)';
+  ctx.fillStyle = 'rgba(154,143,176,0.4)';
   ctx.fillText('roderikusro.github.io/Poem', W / 2, H - 14);
 
   // ---- Download ----
@@ -488,21 +491,21 @@ function downloadFullPoemPNG() {
 
   // ---- Background ----
   const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-  bgGrad.addColorStop(0, '#fff8fb');
-  bgGrad.addColorStop(1, '#f8f5ff');
+  bgGrad.addColorStop(0, '#1a1528');
+  bgGrad.addColorStop(1, '#13101e');
   ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, W, H);
 
   // ---- Border ----
-  ctx.strokeStyle = '#eddde8';
+  ctx.strokeStyle = '#2e2840';
   ctx.lineWidth = 1;
   ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
 
   // ---- Top accent bar ----
   const accentGrad = ctx.createLinearGradient(0, 0, W, 0);
-  accentGrad.addColorStop(0, '#ff7eb3');
-  accentGrad.addColorStop(0.5, '#b388ff');
-  accentGrad.addColorStop(1, '#5ec8a8');
+  accentGrad.addColorStop(0, '#d4a574');
+  accentGrad.addColorStop(0.5, '#8b7ec8');
+  accentGrad.addColorStop(1, '#6b9e8a');
   ctx.fillStyle = accentGrad;
   ctx.fillRect(0, 0, W, 5);
   ctx.fillRect(0, H - 5, W, 5);
@@ -517,21 +520,21 @@ function downloadFullPoemPNG() {
 
   // ---- Title ----
   ctx.font = 'bold 30px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#c4709e';
+  ctx.fillStyle = '#d4a574';
   ctx.fillText(poem.title, W / 2, y);
   y += 32;
 
   // ---- Author · Date ----
   ctx.font = 'italic 15px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#9a8aaa';
+  ctx.fillStyle = '#9a8fb0';
   ctx.fillText(`${poem.author}  \u00B7  ${formatDate(poem.date)}`, W / 2, y);
   y += 40;
 
   // ---- Header divider ----
   const divGrad = ctx.createLinearGradient(PAD_X, 0, W - PAD_X, 0);
   divGrad.addColorStop(0, 'transparent');
-  divGrad.addColorStop(0.3, '#f0cce0');
-  divGrad.addColorStop(0.7, '#ddc8f5');
+  divGrad.addColorStop(0.3, '#3a3050');
+  divGrad.addColorStop(0.7, '#3a3050');
   divGrad.addColorStop(1, 'transparent');
   ctx.strokeStyle = divGrad;
   ctx.lineWidth = 1;
@@ -546,7 +549,7 @@ function downloadFullPoemPNG() {
     const lines = stanza.split('\n');
     ctx.textAlign = 'center';
     ctx.font = '400 19px Georgia, "Times New Roman", serif';
-    ctx.fillStyle = '#4a3a5a';
+    ctx.fillStyle = '#e0d8ec';
     lines.forEach(line => {
       ctx.fillText(line, W / 2, y);
       y += LINE_H;
@@ -556,8 +559,8 @@ function downloadFullPoemPNG() {
     // Divider between stanzas
     if (si < poem.stanzas.length - 1) {
       ctx.font = '16px serif';
-      ctx.fillStyle = '#e8b8d0';
-      ctx.fillText('\u273F', W / 2, y + 6);
+      ctx.fillStyle = '#6b9e8a';
+      ctx.fillText('\u2022', W / 2, y + 6);
       y += 40;
     }
   });
@@ -576,13 +579,13 @@ function downloadFullPoemPNG() {
   // ---- Credit ----
   ctx.textAlign = 'center';
   ctx.font = 'italic 13px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#b07898';
+  ctx.fillStyle = '#9a8fb0';
   ctx.fillText(`\u2014 ${poem.author}  \u00B7  ${poem.title}`, W / 2, y);
   y += 20;
 
   // ---- Watermark ----
   ctx.font = '11px Arial, sans-serif';
-  ctx.fillStyle = 'rgba(180,140,170,0.35)';
+  ctx.fillStyle = 'rgba(154,143,176,0.4)';
   ctx.fillText('roderikusro.github.io/Poem', W / 2, y);
 
   // ---- Download ----
