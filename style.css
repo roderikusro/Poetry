@@ -1315,37 +1315,51 @@ body::after {
    STANZA ACTIONS — Copy & Download
    ============================================= */
 
+/* Desktop: row layout — buttons sit to the right of the poem text */
 .poem-stanza-wrapper {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 14px;
+  gap: 0;
+  position: relative;
 }
 
+/* Stanza text fills center; stays visually centered */
+.poem-stanza-wrapper > .poem-stanza {
+  flex: 1;
+  text-align: center;
+}
+
+/* Buttons column — hidden, slides in from right on hover */
 .stanza-actions {
   display: flex;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
   opacity: 0;
-  transform: translateY(6px);
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transform: translateX(10px);
+  transition: opacity 0.28s ease, transform 0.28s ease;
+  flex-shrink: 0;
+  margin-left: 16px;
+  pointer-events: none;
 }
 
 .poem-stanza-wrapper:hover .stanza-actions {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateX(0);
+  pointer-events: all;
 }
 
 .stanza-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 16px;
+  padding: 7px 14px;
   border-radius: 50px;
   border: 1.5px solid rgba(255, 182, 213, 0.35);
-  background: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(10px);
   font-family: 'Quicksand', sans-serif;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
   transition: var(--transition);
@@ -1355,28 +1369,27 @@ body::after {
 }
 
 .stanza-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(212, 107, 158, 0.18);
+  transform: translateX(2px);
+  box-shadow: 0 5px 16px rgba(212, 107, 158, 0.18);
 }
 
 .copy-btn:hover {
-  background: linear-gradient(135deg, rgba(255, 182, 213, 0.25), rgba(212, 184, 255, 0.25));
+  background: linear-gradient(135deg, rgba(255, 182, 213, 0.3), rgba(212, 184, 255, 0.3));
   border-color: var(--pink);
   color: var(--pink-dark);
 }
 
 .download-btn:hover {
-  background: linear-gradient(135deg, rgba(212, 184, 255, 0.25), rgba(168, 240, 216, 0.25));
+  background: linear-gradient(135deg, rgba(212, 184, 255, 0.3), rgba(168, 240, 216, 0.3));
   border-color: var(--lavender-dark);
   color: var(--lavender-dark);
 }
 
 .stanza-btn-icon {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   line-height: 1;
 }
 
-/* Active click flash */
 .stanza-btn:active {
   transform: scale(0.95);
 }
@@ -1409,14 +1422,58 @@ body::after {
   transform: translateX(-50%) translateY(0);
 }
 
-@media (max-width: 600px) {
+/* =============================================
+   MOBILE OVERRIDE — tap to toggle
+   ============================================= */
+@media (max-width: 768px) {
+  /* Stack vertically on mobile */
+  .poem-stanza-wrapper {
+    flex-direction: column;
+    cursor: pointer;
+  }
+
+  /* Buttons below the stanza, hidden by default */
   .stanza-actions {
+    flex-direction: row;
+    justify-content: center;
+    opacity: 0;
+    transform: translateY(-6px);
+    max-height: 0;
+    overflow: hidden;
+    margin-left: 0;
+    margin-top: 0;
+    gap: 10px;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease, margin-top 0.3s ease;
+  }
+
+  /* Revealed on tap (.active set by JS) */
+  .poem-stanza-wrapper.active .stanza-actions {
     opacity: 1;
-    transform: none;
+    transform: translateY(0);
+    max-height: 60px;
+    margin-top: 12px;
+    pointer-events: all;
+  }
+
+  /* Cancel hover rule on mobile */
+  .poem-stanza-wrapper:hover .stanza-actions {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .poem-stanza-wrapper.active:hover .stanza-actions {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* Tap hint — subtle ring flash on active stanza */
+  .poem-stanza-wrapper.active > .poem-stanza {
+    color: var(--text-accent);
+    transition: color 0.25s ease;
   }
 
   .stanza-btn {
-    padding: 6px 12px;
-    font-size: 0.73rem;
+    padding: 7px 14px;
+    font-size: 0.76rem;
   }
 }

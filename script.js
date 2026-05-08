@@ -465,5 +465,34 @@ function showActionToast(msg) {
   }, 2500);
 }
 
+// ===== Mobile: Tap stanza to toggle action buttons =====
+function initStanzaTapToggle() {
+  const isMobile = () => window.matchMedia('(max-width: 768px)').matches || 'ontouchstart' in window;
+  if (!isMobile()) return;
+
+  document.querySelectorAll('.poem-stanza-wrapper').forEach(wrapper => {
+    wrapper.addEventListener('click', e => {
+      // If the click is on a button, let it fire — don't collapse
+      if (e.target.closest('.stanza-btn')) return;
+
+      const wasActive = wrapper.classList.contains('active');
+
+      // Close all wrappers first
+      document.querySelectorAll('.poem-stanza-wrapper').forEach(w => w.classList.remove('active'));
+
+      // Toggle this one
+      if (!wasActive) wrapper.classList.add('active');
+    });
+  });
+
+  // Tap anywhere outside a wrapper → close all
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.poem-stanza-wrapper')) {
+      document.querySelectorAll('.poem-stanza-wrapper').forEach(w => w.classList.remove('active'));
+    }
+  });
+}
+
 // ===== Initialize =====
 renderPoem();
+initStanzaTapToggle();
