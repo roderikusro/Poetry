@@ -35,9 +35,23 @@ function renderPoem() {
   `;
 
   // Body - stanzas
-  const stanzasHTML = poem.stanzas.map(stanza =>
-    `<div class="poem-stanza">${stanza.replace(/\n/g, '<br>')}</div>`
-  ).join('<div class="stanza-divider">✿</div>');
+  const stanzasHTML = poem.stanzas.map((stanza, i) => {
+    const lines = stanza.replace(/\n/g, '<br>');
+    return `
+      <div class="poem-stanza-wrapper">
+        <div class="poem-stanza" data-stanza-idx="${i}">${lines}</div>
+        <div class="stanza-actions">
+          <button class="stanza-btn copy-btn" onclick="copyStanza(${i})" title="Salin kutipan">
+            <span class="stanza-btn-icon">📋</span>
+            <span>Salin</span>
+          </button>
+          <button class="stanza-btn download-btn" onclick="downloadStanzaPNG(${i})" title="Unduh sebagai gambar">
+            <span class="stanza-btn-icon">🖼️</span>
+            <span>Unduh PNG</span>
+          </button>
+        </div>
+      </div>`;
+  }).join('<div class="stanza-divider">✿</div>');
 
   if (poem.isPrivate) {
     document.getElementById('poemBody').innerHTML = stanzasHTML;
@@ -316,6 +330,140 @@ function toggleSongList() { songSelector.classList.toggle('show'); }
 document.addEventListener('click', e => {
   if (!songSelector.contains(e.target) && e.target.id !== 'listBtn') songSelector.classList.remove('show');
 });
+
+// ===== Copy Stanza =====
+function copyStanza(idx) {
+  const text = poem.stanzas[idx];
+  const credit = `\n\n— ${poem.author}, "${poem.title}"`;
+  navigator.clipboard.writeText(text + credit).then(() => {
+    showActionToast('📋 Kutipan disalin!');
+  }).catch(() => {
+    // fallback
+    const ta = document.createElement('textarea');
+    ta.value = text + credit;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    ta.remove();
+    showActionToast('📋 Kutipan disalin!');
+  });
+}
+
+// ===== Download Stanza as PNG =====
+function downloadStanzaPNG(idx) {
+  const stanza = poem.stanzas[idx];
+  const lines = stanza.split('\n');
+
+  const W = 800, H = 500;
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // ---- Background gradient ----
+  const grad = ctx.createLinearGradient(0, 0, W, H);
+  grad.addColorStop(0,   '#fff0f8');
+  grad.addColorStop(0.5, '#f3eeff');
+  grad.addColorStop(1,   '#e8faf4');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---- Decorative blobs ----
+  function blob(x, y, r, color) {
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, color);
+    g.addColorStop(1, 'transparent');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  blob(100, 100, 200, 'rgba(255,182,213,0.22)');
+  blob(700, 400, 220, 'rgba(212,184,255,0.2)');
+  blob(400, 250, 150, 'rgba(168,240,216,0.12)');
+
+  // ---- Decorative corner emojis ----
+  ctx.font = '32px serif';
+  ctx.fillText('🌸', 28, 52);
+  ctx.fillText('✨', W - 62, 52);
+  ctx.fillText('🍃', 28, H - 24);
+  ctx.fillText('💫', W - 62, H - 24);
+
+  // ---- Top accent bar ----
+  const barGrad = ctx.createLinearGradient(60, 0, W - 60, 0);
+  barGrad.addColorStop(0,    '#ff7eb3');
+  barGrad.addColorStop(0.5,  '#b388ff');
+  barGrad.addColorStop(1,    '#3db88c');
+  ctx.fillStyle = barGrad;
+  ctx.beginPath();
+  ctx.roundRect(60, 54, W - 120, 5, 10);
+  ctx.fill();
+
+  // ---- Opening quote mark ----
+  ctx.fillStyle = 'rgba(255,126,179,0.18)';
+  ctx.font = 'bold 140px Georgia, serif';
+  ctx.fillText('\u201C', 44, 170);
+
+  // ---- Poem stanza lines ----
+  ctx.fillStyle = '#5a4a6a';
+  ctx.font = '500 26px \'Quicksand\', \'Segoe UI\', sans-serif';
+  ctx.textAlign = 'center';
+  const lineH = 44;
+  const startY = H / 2 - ((lines.length - 1) * lineH) / 2 - 10;
+  lines.forEach((line, i) => {
+    ctx.fillText(line, W / 2, startY + i * lineH);
+  });
+
+  // ---- Closing quote mark (right-aligned) ----
+  ctx.fillStyle = 'rgba(179,136,255,0.18)';
+  ctx.font = 'bold 140px Georgia, serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('\u201D', W - 44, H - 90);
+
+  // ---- Bottom accent bar ----
+  ctx.fillStyle = barGrad;
+  ctx.beginPath();
+  ctx.roundRect(60, H - 60, W - 120, 5, 10);
+  ctx.fill();
+
+  // ---- Poem emoji + title ----
+  ctx.textAlign = 'center';
+  ctx.font = '500 17px \'Quicksand\', \'Segoe UI\', sans-serif';
+  ctx.fillStyle = '#d46b9e';
+  ctx.fillText(`${poem.emoji}  ${poem.title}`, W / 2, H - 64);
+
+  // ---- Author credit ----
+  ctx.font = 'italic 15px \'Quicksand\', \'Segoe UI\', sans-serif';
+  ctx.fillStyle = '#8a7a9a';
+  ctx.fillText(`— ${poem.author}`, W / 2, H - 38);
+
+  // ---- Watermark ----
+  ctx.font = '12px \'Quicksand\', \'Segoe UI\', sans-serif';
+  ctx.fillStyle = 'rgba(138,122,154,0.45)';
+  ctx.fillText('🌸 Roderikus Poem', W / 2, H - 14);
+
+  // ---- Download ----
+  const link = document.createElement('a');
+  link.download = `${poem.title.replace(/\s+/g, '_')}_stanza_${idx + 1}.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showActionToast('🖼️ Gambar berhasil diunduh!');
+}
+
+// ===== Action Toast =====
+function showActionToast(msg) {
+  // Remove existing
+  document.querySelectorAll('.action-toast').forEach(t => t.remove());
+  const toast = document.createElement('div');
+  toast.className = 'action-toast';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => requestAnimationFrame(() => toast.classList.add('show')));
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 2500);
+}
 
 // ===== Initialize =====
 renderPoem();
