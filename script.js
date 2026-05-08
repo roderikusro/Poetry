@@ -79,10 +79,16 @@ function renderPoem() {
 
   // Footer
   document.getElementById('poemFooter').innerHTML = `
-    <button class="like-poem-btn" id="likePoemBtn" onclick="toggleLikePoem()">
-      <span class="like-icon">🤍</span>
-      <span class="like-text">Suka puisi ini</span>
-    </button>
+    <div class="poem-footer-actions">
+      <button class="like-poem-btn" id="likePoemBtn" onclick="toggleLikePoem()">
+        <span class="like-icon">🤍</span>
+        <span class="like-text">Suka puisi ini</span>
+      </button>
+      <button class="download-full-btn" id="downloadFullBtn" onclick="downloadFullPoemPNG()">
+        <span>🖼️</span>
+        <span>Unduh Puisi</span>
+      </button>
+    </div>
     <div class="poem-nav-links">
       ${getPrevPoem() ? `<a href="poem.html?id=${getPrevPoem().id}" class="poem-nav-link prev-link">← ${getPrevPoem().title}</a>` : '<span></span>'}
       ${getNextPoem() ? `<a href="poem.html?id=${getNextPoem().id}" class="poem-nav-link next-link">${getNextPoem().title} →</a>` : '<span></span>'}
@@ -349,106 +355,228 @@ function copyStanza(idx) {
   });
 }
 
-// ===== Download Stanza as PNG =====
+// ===== Download Stanza as PNG (formal + sweet) =====
 function downloadStanzaPNG(idx) {
   const stanza = poem.stanzas[idx];
   const lines = stanza.split('\n');
 
-  const W = 800, H = 500;
+  const W = 800;
+  const LINE_H = 42;
+  const textH = lines.length * LINE_H;
+  const H = Math.max(360, textH + 220);
+
   const canvas = document.createElement('canvas');
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext('2d');
 
-  // ---- Background gradient ----
-  const grad = ctx.createLinearGradient(0, 0, W, H);
-  grad.addColorStop(0,   '#fff0f8');
-  grad.addColorStop(0.5, '#f3eeff');
-  grad.addColorStop(1,   '#e8faf4');
-  ctx.fillStyle = grad;
+  // ---- Background: warm cream ----
+  ctx.fillStyle = '#fefcfb';
   ctx.fillRect(0, 0, W, H);
 
-  // ---- Decorative blobs ----
-  function blob(x, y, r, color) {
-    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, color);
-    g.addColorStop(1, 'transparent');
-    ctx.fillStyle = g;
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  blob(100, 100, 200, 'rgba(255,182,213,0.22)');
-  blob(700, 400, 220, 'rgba(212,184,255,0.2)');
-  blob(400, 250, 150, 'rgba(168,240,216,0.12)');
+  // ---- Outer border ----
+  ctx.strokeStyle = '#eddde8';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
 
-  // ---- Decorative corner emojis ----
-  ctx.font = '32px serif';
-  ctx.fillText('🌸', 28, 52);
-  ctx.fillText('✨', W - 62, 52);
-  ctx.fillText('🍃', 28, H - 24);
-  ctx.fillText('💫', W - 62, H - 24);
+  // ---- Top accent bar (gradient) ----
+  const accentGrad = ctx.createLinearGradient(0, 0, W, 0);
+  accentGrad.addColorStop(0, '#ff7eb3');
+  accentGrad.addColorStop(1, '#b388ff');
+  ctx.fillStyle = accentGrad;
+  ctx.fillRect(0, 0, W, 4);
 
-  // ---- Top accent bar ----
-  const barGrad = ctx.createLinearGradient(60, 0, W - 60, 0);
-  barGrad.addColorStop(0,    '#ff7eb3');
-  barGrad.addColorStop(0.5,  '#b388ff');
-  barGrad.addColorStop(1,    '#3db88c');
-  ctx.fillStyle = barGrad;
-  ctx.beginPath();
-  ctx.roundRect(60, 54, W - 120, 5, 10);
-  ctx.fill();
+  // ---- Subtle bottom bar ----
+  ctx.fillStyle = accentGrad;
+  ctx.fillRect(0, H - 4, W, 4);
 
   // ---- Opening quote mark ----
-  ctx.fillStyle = 'rgba(255,126,179,0.18)';
-  ctx.font = 'bold 140px Georgia, serif';
-  ctx.fillText('\u201C', 44, 170);
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 64px Georgia, "Times New Roman", serif';
+  ctx.fillStyle = '#f5c2d8';
+  ctx.fillText('\u201C', 44, 78);
 
-  // ---- Poem stanza lines ----
-  ctx.fillStyle = '#5a4a6a';
-  ctx.font = '500 26px \'Quicksand\', \'Segoe UI\', sans-serif';
+  // ---- Stanza text (centered) ----
   ctx.textAlign = 'center';
-  const lineH = 44;
-  const startY = H / 2 - ((lines.length - 1) * lineH) / 2 - 10;
+  ctx.font = '400 22px Georgia, "Times New Roman", serif';
+  ctx.fillStyle = '#4a3a5a';
+  const startY = H / 2 - (textH / 2) + LINE_H * 0.6;
   lines.forEach((line, i) => {
-    ctx.fillText(line, W / 2, startY + i * lineH);
+    ctx.fillText(line, W / 2, startY + i * LINE_H);
   });
 
-  // ---- Closing quote mark (right-aligned) ----
-  ctx.fillStyle = 'rgba(179,136,255,0.18)';
-  ctx.font = 'bold 140px Georgia, serif';
+  // ---- Closing quote mark ----
   ctx.textAlign = 'right';
-  ctx.fillText('\u201D', W - 44, H - 90);
+  ctx.font = 'bold 64px Georgia, "Times New Roman", serif';
+  ctx.fillStyle = '#d4b8ff';
+  ctx.fillText('\u201D', W - 44, H - 68);
 
-  // ---- Bottom accent bar ----
-  ctx.fillStyle = barGrad;
+  // ---- Thin divider line ----
+  const divGrad = ctx.createLinearGradient(100, 0, W - 100, 0);
+  divGrad.addColorStop(0, 'transparent');
+  divGrad.addColorStop(0.3, '#f0cce0');
+  divGrad.addColorStop(0.7, '#ddc8f5');
+  divGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = divGrad;
+  ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.roundRect(60, H - 60, W - 120, 5, 10);
-  ctx.fill();
+  ctx.moveTo(100, H - 54);
+  ctx.lineTo(W - 100, H - 54);
+  ctx.stroke();
 
-  // ---- Poem emoji + title ----
+  // ---- Credit: author · title ----
   ctx.textAlign = 'center';
-  ctx.font = '500 17px \'Quicksand\', \'Segoe UI\', sans-serif';
-  ctx.fillStyle = '#d46b9e';
-  ctx.fillText(`${poem.emoji}  ${poem.title}`, W / 2, H - 64);
-
-  // ---- Author credit ----
-  ctx.font = 'italic 15px \'Quicksand\', \'Segoe UI\', sans-serif';
-  ctx.fillStyle = '#8a7a9a';
-  ctx.fillText(`— ${poem.author}`, W / 2, H - 38);
+  ctx.font = 'italic 14px Georgia, "Times New Roman", serif';
+  ctx.fillStyle = '#b07898';
+  ctx.fillText(`\u2014 ${poem.author}  \u00B7  ${poem.title}`, W / 2, H - 34);
 
   // ---- Watermark ----
-  ctx.font = '12px \'Quicksand\', \'Segoe UI\', sans-serif';
-  ctx.fillStyle = 'rgba(138,122,154,0.45)';
-  ctx.fillText('🌸 Roderikus Poem', W / 2, H - 14);
+  ctx.font = '11px Arial, sans-serif';
+  ctx.fillStyle = 'rgba(180,140,170,0.35)';
+  ctx.fillText('roderikusro.github.io/Poem', W / 2, H - 14);
 
   // ---- Download ----
   const link = document.createElement('a');
-  link.download = `${poem.title.replace(/\s+/g, '_')}_stanza_${idx + 1}.png`;
+  link.download = `${poem.title.replace(/\s+/g, '_')}_bait_${idx + 1}.png`;
   link.href = canvas.toDataURL('image/png');
   link.click();
-  showActionToast('🖼️ Gambar berhasil diunduh!');
+  showActionToast('\uD83D\uDDBC\uFE0F Gambar berhasil diunduh!');
 }
+
+// ===== Download Full Poem as PNG (responsive height) =====
+function downloadFullPoemPNG() {
+  const W = 800;
+  const LINE_H = 38;
+  const PAD_X = 100;
+
+  // Calculate total canvas height dynamically
+  let totalH = 0;
+  totalH += 40;  // top padding
+  totalH += 60;  // emoji
+  totalH += 44;  // title
+  totalH += 30;  // author + date
+  totalH += 50;  // spacer after header
+  poem.stanzas.forEach((stanza, i) => {
+    totalH += stanza.split('\n').length * LINE_H;
+    totalH += 24; // bottom padding per stanza
+    if (i < poem.stanzas.length - 1) totalH += 44; // divider flower
+  });
+  totalH += 60;  // footer spacer
+  totalH += 20;  // watermark line
+  totalH += 30;  // bottom padding
+
+  const H = Math.max(500, totalH);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = W;
+  canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // ---- Background ----
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
+  bgGrad.addColorStop(0, '#fff8fb');
+  bgGrad.addColorStop(1, '#f8f5ff');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, W, H);
+
+  // ---- Border ----
+  ctx.strokeStyle = '#eddde8';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
+
+  // ---- Top accent bar ----
+  const accentGrad = ctx.createLinearGradient(0, 0, W, 0);
+  accentGrad.addColorStop(0, '#ff7eb3');
+  accentGrad.addColorStop(0.5, '#b388ff');
+  accentGrad.addColorStop(1, '#5ec8a8');
+  ctx.fillStyle = accentGrad;
+  ctx.fillRect(0, 0, W, 5);
+  ctx.fillRect(0, H - 5, W, 5);
+
+  let y = 50;
+
+  // ---- Emoji ----
+  ctx.textAlign = 'center';
+  ctx.font = '40px serif';
+  ctx.fillText(poem.emoji, W / 2, y + 10);
+  y += 58;
+
+  // ---- Title ----
+  ctx.font = 'bold 30px Georgia, "Times New Roman", serif';
+  ctx.fillStyle = '#c4709e';
+  ctx.fillText(poem.title, W / 2, y);
+  y += 32;
+
+  // ---- Author · Date ----
+  ctx.font = 'italic 15px Georgia, "Times New Roman", serif';
+  ctx.fillStyle = '#9a8aaa';
+  ctx.fillText(`${poem.author}  \u00B7  ${formatDate(poem.date)}`, W / 2, y);
+  y += 40;
+
+  // ---- Header divider ----
+  const divGrad = ctx.createLinearGradient(PAD_X, 0, W - PAD_X, 0);
+  divGrad.addColorStop(0, 'transparent');
+  divGrad.addColorStop(0.3, '#f0cce0');
+  divGrad.addColorStop(0.7, '#ddc8f5');
+  divGrad.addColorStop(1, 'transparent');
+  ctx.strokeStyle = divGrad;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD_X, y);
+  ctx.lineTo(W - PAD_X, y);
+  ctx.stroke();
+  y += 36;
+
+  // ---- Stanzas ----
+  poem.stanzas.forEach((stanza, si) => {
+    const lines = stanza.split('\n');
+    ctx.textAlign = 'center';
+    ctx.font = '400 19px Georgia, "Times New Roman", serif';
+    ctx.fillStyle = '#4a3a5a';
+    lines.forEach(line => {
+      ctx.fillText(line, W / 2, y);
+      y += LINE_H;
+    });
+    y += 20;
+
+    // Divider between stanzas
+    if (si < poem.stanzas.length - 1) {
+      ctx.font = '16px serif';
+      ctx.fillStyle = '#e8b8d0';
+      ctx.fillText('\u273F', W / 2, y + 6);
+      y += 40;
+    }
+  });
+
+  y += 30;
+
+  // ---- Footer divider ----
+  ctx.strokeStyle = divGrad;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(PAD_X, y);
+  ctx.lineTo(W - PAD_X, y);
+  ctx.stroke();
+  y += 22;
+
+  // ---- Credit ----
+  ctx.textAlign = 'center';
+  ctx.font = 'italic 13px Georgia, "Times New Roman", serif';
+  ctx.fillStyle = '#b07898';
+  ctx.fillText(`\u2014 ${poem.author}  \u00B7  ${poem.title}`, W / 2, y);
+  y += 20;
+
+  // ---- Watermark ----
+  ctx.font = '11px Arial, sans-serif';
+  ctx.fillStyle = 'rgba(180,140,170,0.35)';
+  ctx.fillText('roderikusro.github.io/Poem', W / 2, y);
+
+  // ---- Download ----
+  const link = document.createElement('a');
+  link.download = `${poem.title.replace(/\s+/g, '_')}_full.png`;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+  showActionToast('\uD83D\uDDBC\uFE0F Puisi lengkap berhasil diunduh!');
 
 // ===== Action Toast =====
 function showActionToast(msg) {

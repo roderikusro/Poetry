@@ -635,6 +635,16 @@ body::after {
   animation: fadeInUp 0.7s ease-out 0.2s both;
 }
 
+/* Footer action buttons row */
+.poem-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
 .like-poem-btn {
   display: inline-flex;
   align-items: center;
@@ -682,6 +692,32 @@ body::after {
   100% {
     transform: scale(1);
   }
+}
+
+/* Download full poem button */
+.download-full-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 50px;
+  border: 2px solid rgba(212, 184, 255, 0.35);
+  background: var(--bg-card);
+  backdrop-filter: blur(8px);
+  font-family: 'Quicksand', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: var(--shadow-soft);
+}
+
+.download-full-btn:hover {
+  border-color: var(--lavender-dark);
+  color: var(--lavender-dark);
+  background: linear-gradient(135deg, rgba(212, 184, 255, 0.2), rgba(168, 240, 216, 0.15));
+  transform: scale(1.05);
 }
 
 /* Poem Navigation Links */
