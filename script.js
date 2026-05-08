@@ -37,15 +37,16 @@ function renderPoem() {
   // Body - stanzas
   const stanzasHTML = poem.stanzas.map((stanza, i) => {
     const lines = stanza.replace(/\n/g, '<br>');
+    const btnHidden = poem.isPrivate ? 'btn-hidden' : '';
     return `
       <div class="poem-stanza-wrapper">
         <div class="poem-stanza" data-stanza-idx="${i}">${lines}</div>
         <div class="stanza-actions">
-          <button class="stanza-btn copy-btn" onclick="copyStanza(${i})" title="Salin kutipan">
+          <button class="stanza-btn copy-btn ${btnHidden}" onclick="copyStanza(${i})" title="Salin kutipan">
             <span class="stanza-btn-icon">📋</span>
             <span>Salin</span>
           </button>
-          <button class="stanza-btn download-btn" onclick="downloadStanzaPNG(${i})" title="Unduh sebagai gambar">
+          <button class="stanza-btn download-btn ${btnHidden}" onclick="downloadStanzaPNG(${i})" title="Unduh sebagai gambar">
             <span class="stanza-btn-icon">🖼️</span>
             <span>Unduh PNG</span>
           </button>
@@ -112,12 +113,19 @@ function tryUnlock() {
     const banner = document.getElementById('lockBanner');
     banner.classList.add('hidden');
     showUnlockToast();
-    // Reveal download button with fade-in
+    // Reveal download full poem button
     const dlBtn = document.getElementById('downloadFullBtn');
     if (dlBtn) {
       dlBtn.classList.remove('btn-hidden');
       dlBtn.classList.add('btn-revealed');
     }
+    // Reveal all per-stanza buttons with staggered pop-in
+    document.querySelectorAll('.stanza-btn.btn-hidden').forEach((btn, idx) => {
+      setTimeout(() => {
+        btn.classList.remove('btn-hidden');
+        btn.classList.add('btn-revealed');
+      }, idx * 60);
+    });
     // Auto remove banner after animation
     setTimeout(() => banner.remove(), 500);
   } else {
