@@ -84,7 +84,7 @@ function renderPoem() {
         <span class="like-icon">🤍</span>
         <span class="like-text">Suka puisi ini</span>
       </button>
-      <button class="download-full-btn" id="downloadFullBtn" onclick="downloadFullPoemPNG()">
+      <button class="download-full-btn ${poem.isPrivate ? 'btn-hidden' : ''}" id="downloadFullBtn" onclick="downloadFullPoemPNG()">
         <span>🖼️</span>
         <span>Unduh Puisi</span>
       </button>
@@ -112,6 +112,12 @@ function tryUnlock() {
     const banner = document.getElementById('lockBanner');
     banner.classList.add('hidden');
     showUnlockToast();
+    // Reveal download button with fade-in
+    const dlBtn = document.getElementById('downloadFullBtn');
+    if (dlBtn) {
+      dlBtn.classList.remove('btn-hidden');
+      dlBtn.classList.add('btn-revealed');
+    }
     // Auto remove banner after animation
     setTimeout(() => banner.remove(), 500);
   } else {
