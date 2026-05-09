@@ -159,9 +159,10 @@ function tryUnlock() {
       dlBtn.classList.add('btn-revealed');
     }
 
-    // Show music player and init it
+    // Show music player, init UI, and create YouTube player with autoplay
     document.getElementById('musicPlayer').style.display = '';
     initPlayer();
+    createYouTubePlayer();
 
   } else {
     // Wrong password — shake effect
@@ -240,8 +241,21 @@ function initPlayer() {
 // YouTube IFrame API callback (called automatically)
 function onYouTubeIframeAPIReady() {
   if (!poem) return;
+  // Don't auto-create player for private poems — wait until unlocked
+  if (poem.isPrivate) return;
+  createYouTubePlayer();
+}
+
+function createYouTubePlayer() {
   const videoId = getYouTubeId(poem.youtubeUrl);
   if (!videoId) return;
+
+  // Destroy old player if exists
+  if (ytPlayer && ytPlayer.destroy) {
+    try { ytPlayer.destroy(); } catch(e) {}
+    ytPlayer = null;
+  }
+  document.getElementById('ytContainer').innerHTML = '<div id="ytPlayer"></div>';
 
   ytPlayer = new YT.Player('ytPlayer', {
     height: '1',
