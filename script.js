@@ -239,12 +239,12 @@ function onPlayerReady() {
   if (ytPlayer && ytPlayer.getDuration) {
     totalTimeEl.textContent = fmtTime(ytPlayer.getDuration());
   }
-  // Autoplay after 2 second delay
+  // Autoplay after 4 second delay
   setTimeout(() => {
     if (ytPlayer && ytPlayer.playVideo) {
       ytPlayer.playVideo();
     }
-  }, 2000);
+  }, 4000);
 }
 
 function onPlayerStateChange(event) {
