@@ -949,6 +949,7 @@ body::after {
     opacity: 0;
     transform: scale(0.7);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -1595,7 +1596,7 @@ body::after {
 }
 
 /* Stanza text: full width, centered */
-.poem-stanza-wrapper > .poem-stanza {
+.poem-stanza-wrapper>.poem-stanza {
   width: 100%;
   text-align: center;
 }
@@ -1614,7 +1615,7 @@ body::after {
   /* max-height drives the layout push; opacity for visual fade */
   transition:
     max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-    opacity    0.28s ease,
+    opacity 0.28s ease,
     margin-top 0.28s ease;
 }
 
@@ -1717,7 +1718,7 @@ body::after {
     pointer-events: none;
     transition:
       max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
-      opacity    0.28s ease,
+      opacity 0.28s ease,
       margin-top 0.28s ease;
   }
 
@@ -1730,7 +1731,7 @@ body::after {
   }
 
   /* Active stanza: subtle accent tint as tap feedback */
-  .poem-stanza-wrapper.active > .poem-stanza {
+  .poem-stanza-wrapper.active>.poem-stanza {
     color: var(--text-accent);
     transition: color 0.25s ease;
   }
