@@ -114,18 +114,28 @@
           </div>
 
           <div class="admin-field">
-            <label class="admin-label">🎵 Lagu Latar (YouTube)</label>
-            <input type="text" class="admin-input" id="poemYoutubeUrl" placeholder="Paste link YouTube... (contoh: https://youtube.com/watch?v=xxx)">
+            <label class="admin-label">🎵 Lagu Latar</label>
+            <select class="admin-input admin-select" id="poemSongSelect" onchange="onSongSelect()">
+              <option value="">— Tanpa musik —</option>
+              <!-- Filled by JS (defaultSongs) -->
+              <option value="custom">🔗 Custom YouTube URL...</option>
+            </select>
           </div>
 
-          <div class="admin-field-row">
+          <div id="customSongFields" style="display:none;">
             <div class="admin-field">
-              <label class="admin-label">Judul Lagu</label>
-              <input type="text" class="admin-input" id="poemSongTitle" placeholder="Judul lagu...">
+              <label class="admin-label">🔗 YouTube URL</label>
+              <input type="text" class="admin-input" id="poemYoutubeUrl" placeholder="https://youtube.com/watch?v=...">
             </div>
-            <div class="admin-field">
-              <label class="admin-label">Artis</label>
-              <input type="text" class="admin-input" id="poemSongArtist" placeholder="Nama artis...">
+            <div class="admin-field-row">
+              <div class="admin-field">
+                <label class="admin-label">Judul Lagu</label>
+                <input type="text" class="admin-input" id="poemSongTitle" placeholder="Judul lagu...">
+              </div>
+              <div class="admin-field">
+                <label class="admin-label">Artis</label>
+                <input type="text" class="admin-input" id="poemSongArtist" placeholder="Nama artis...">
+              </div>
             </div>
           </div>
 

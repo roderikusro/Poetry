@@ -37,6 +37,7 @@ function initDashboard() {
   renderAdminPoemList();
   initEmojiPicker();
   initTagPicker();
+  initSongSelector();
   addStanzaField(); // First stanza field
   setDefaultDate();
 }
@@ -152,7 +153,44 @@ function toggleTag(type) {
   });
 }
 
-// (Song selector removed — now using YouTube URL input)
+// ===== Song Selector =====
+function initSongSelector() {
+  const sel = document.getElementById('poemSongSelect');
+  // Insert default songs before the "custom" option
+  const customOpt = sel.querySelector('option[value="custom"]');
+  defaultSongs.forEach((s, i) => {
+    const opt = document.createElement('option');
+    opt.value = `default_${i}`;
+    opt.textContent = `${s.icon} ${s.title} — ${s.artist}`;
+    sel.insertBefore(opt, customOpt);
+  });
+}
+
+function onSongSelect() {
+  const sel = document.getElementById('poemSongSelect');
+  const val = sel.value;
+  const customFields = document.getElementById('customSongFields');
+
+  if (val === 'custom') {
+    customFields.style.display = 'block';
+    document.getElementById('poemYoutubeUrl').value = '';
+    document.getElementById('poemSongTitle').value = '';
+    document.getElementById('poemSongArtist').value = '';
+  } else if (val.startsWith('default_')) {
+    customFields.style.display = 'none';
+    const idx = parseInt(val.split('_')[1]);
+    const song = defaultSongs[idx];
+    document.getElementById('poemYoutubeUrl').value = song.youtubeUrl;
+    document.getElementById('poemSongTitle').value = song.title;
+    document.getElementById('poemSongArtist').value = song.artist;
+  } else {
+    // "Tanpa musik"
+    customFields.style.display = 'none';
+    document.getElementById('poemYoutubeUrl').value = '';
+    document.getElementById('poemSongTitle').value = '';
+    document.getElementById('poemSongArtist').value = '';
+  }
+}
 
 // ===== Stanza Fields =====
 let stanzaCount = 0;
@@ -289,6 +327,21 @@ function editPoem(id) {
   document.getElementById('poemSongTitle').value = p.songTitle || '';
   document.getElementById('poemSongArtist').value = p.songArtist || '';
 
+  // Set song dropdown
+  const sel = document.getElementById('poemSongSelect');
+  const customFields = document.getElementById('customSongFields');
+  const matchIdx = defaultSongs.findIndex(s => s.youtubeUrl === p.youtubeUrl);
+  if (!p.youtubeUrl) {
+    sel.value = '';
+    customFields.style.display = 'none';
+  } else if (matchIdx >= 0) {
+    sel.value = `default_${matchIdx}`;
+    customFields.style.display = 'none';
+  } else {
+    sel.value = 'custom';
+    customFields.style.display = 'block';
+  }
+
   // Emoji
   selectEmoji(p.emoji);
 
@@ -336,6 +389,8 @@ function resetForm() {
   document.getElementById('poemYoutubeUrl').value = '';
   document.getElementById('poemSongTitle').value = '';
   document.getElementById('poemSongArtist').value = '';
+  document.getElementById('poemSongSelect').value = '';
+  document.getElementById('customSongFields').style.display = 'none';
   selectEmoji('🌸');
   selectedTags = [];
   document.querySelectorAll('.tag-option').forEach(el => el.classList.remove('selected'));
@@ -422,11 +477,13 @@ const defaultPoems = [
 ${poemsStr}
 ];
 
-const songs = [
-  { title: "Morning Light", artist: "Ambient Dreams", icon: "🌅", melody: "morning" },
-  { title: "Raindrops Lullaby", artist: "Nature Sounds", icon: "🌧️", melody: "rain" },
-  { title: "Starry Night Waltz", artist: "Moonlit Piano", icon: "🌙", melody: "starry" },
-  { title: "Cherry Blossom Breeze", artist: "Sakura Melodies", icon: "🌸", melody: "cherry" }
+// ===== Default Background Songs (YouTube) =====
+const defaultSongs = [
+  { title: "Clair de Lune", artist: "Debussy", icon: "🌙", youtubeUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY" },
+  { title: "River Flows in You", artist: "Yiruma", icon: "🌊", youtubeUrl: "https://www.youtube.com/watch?v=7maJOI3QMu0" },
+  { title: "Gymnopédie No.1", artist: "Erik Satie", icon: "☁️", youtubeUrl: "https://www.youtube.com/watch?v=S-Xm7s9eGxU" },
+  { title: "Nocturne Op.9 No.2", artist: "Chopin", icon: "🌌", youtubeUrl: "https://www.youtube.com/watch?v=9E6b3swbnWg" },
+  { title: "Experience", artist: "Ludovico Einaudi", icon: "✨", youtubeUrl: "https://www.youtube.com/watch?v=_VONMkKkdf4" }
 ];
 
 // Extract YouTube video ID from various URL formats
