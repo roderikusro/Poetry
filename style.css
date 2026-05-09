@@ -1386,7 +1386,6 @@ body::after {
 
 .poem-body-blurred .poem-stanza,
 .poem-body-blurred .stanza-divider {
-  filter: blur(8px);
   user-select: none;
   transition: filter 0.6s ease;
 }
@@ -1394,6 +1393,33 @@ body::after {
 .poem-body-blurred.unlocked .poem-stanza,
 .poem-body-blurred.unlocked .stanza-divider {
   filter: blur(0);
+}
+
+/* Locked placeholder lines (no real content in DOM) */
+.poem-stanza-locked {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 10px 0;
+}
+
+.locked-line {
+  display: block;
+  height: 14px;
+  border-radius: 7px;
+  background: linear-gradient(90deg, rgba(200, 155, 123, 0.08), rgba(139, 126, 200, 0.12), rgba(200, 155, 123, 0.08));
+  background-size: 200% 100%;
+  animation: lockedShimmer 2.5s ease-in-out infinite;
+  width: 100%;
+}
+
+.locked-line.short {
+  width: 60%;
+}
+
+@keyframes lockedShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
 /* Lock banner inside poem body */

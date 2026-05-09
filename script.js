@@ -35,28 +35,22 @@ function renderPoem() {
   `;
 
   // Body - stanzas
-  const stanzasHTML = poem.stanzas.map((stanza, i) => {
-    const lines = stanza.replace(/\n/g, '<br>');
-    const btnHidden = poem.isPrivate ? 'btn-hidden' : '';
-    return `
-      <div class="poem-stanza-wrapper">
-        <div class="poem-stanza" data-stanza-idx="${i}">${lines}</div>
-        <div class="stanza-actions">
-          <button class="stanza-btn copy-btn ${btnHidden}" onclick="copyStanza(${i})" title="Salin kutipan">
-            <span class="stanza-btn-icon">📋</span>
-            <span>Salin</span>
-          </button>
-          <button class="stanza-btn download-btn ${btnHidden}" onclick="downloadStanzaPNG(${i})" title="Unduh sebagai gambar">
-            <span class="stanza-btn-icon">🖼️</span>
-            <span>Unduh PNG</span>
-          </button>
-        </div>
-      </div>`;
-  }).join('<div class="stanza-divider">✿</div>');
-
   if (poem.isPrivate) {
-    document.getElementById('poemBody').innerHTML = stanzasHTML;
+    // === SECURE: Don't render any poem content to DOM ===
+    // Show only placeholder blocks (no real text, inspect-proof)
+    const placeholderHTML = poem.stanzas.map(() => `
+      <div class="poem-stanza-wrapper">
+        <div class="poem-stanza poem-stanza-locked">
+          <span class="locked-line"></span>
+          <span class="locked-line"></span>
+          <span class="locked-line"></span>
+          <span class="locked-line short"></span>
+        </div>
+      </div>`).join('<div class="stanza-divider">✿</div>');
+
+    document.getElementById('poemBody').innerHTML = placeholderHTML;
     document.getElementById('poemBody').classList.add('poem-body-blurred', 'poem-locked-overlay');
+
     // Inject lock banner
     const banner = document.createElement('div');
     banner.className = 'poem-lock-banner';
@@ -74,7 +68,29 @@ function renderPoem() {
       <div class="unlock-error" id="unlockError"></div>
     `;
     document.getElementById('poemBody').appendChild(banner);
+
+    // Hide music player for private poems until unlocked
+    document.getElementById('musicPlayer').style.display = 'none';
+
   } else {
+    const stanzasHTML = poem.stanzas.map((stanza, i) => {
+      const lines = stanza.replace(/\n/g, '<br>');
+      return `
+        <div class="poem-stanza-wrapper">
+          <div class="poem-stanza" data-stanza-idx="${i}">${lines}</div>
+          <div class="stanza-actions">
+            <button class="stanza-btn copy-btn" onclick="copyStanza(${i})" title="Salin kutipan">
+              <span class="stanza-btn-icon">📋</span>
+              <span>Salin</span>
+            </button>
+            <button class="stanza-btn download-btn" onclick="downloadStanzaPNG(${i})" title="Unduh sebagai gambar">
+              <span class="stanza-btn-icon">🖼️</span>
+              <span>Unduh PNG</span>
+            </button>
+          </div>
+        </div>`;
+    }).join('<div class="stanza-divider">✿</div>');
+
     document.getElementById('poemBody').innerHTML = stanzasHTML;
   }
 
@@ -92,7 +108,10 @@ function renderPoem() {
     </div>
   `;
 
-  initPlayer();
+  // Only init player for non-private poems
+  if (!poem.isPrivate) {
+    initPlayer();
+  }
 }
 
 // ===== Private Poem — Unlock =====
@@ -102,26 +121,48 @@ function tryUnlock() {
   const entered = input.value.trim();
 
   if (entered === poem.password) {
-    // Unlock!
-    document.getElementById('poemBody').classList.add('unlocked');
+    // === UNLOCK: Now inject real content into DOM ===
     const banner = document.getElementById('lockBanner');
     banner.classList.add('hidden');
+    setTimeout(() => banner.remove(), 500);
     showUnlockToast();
+
+    // Build real stanza HTML
+    const stanzasHTML = poem.stanzas.map((stanza, i) => {
+      const lines = stanza.replace(/\n/g, '<br>');
+      return `
+        <div class="poem-stanza-wrapper">
+          <div class="poem-stanza" data-stanza-idx="${i}">${lines}</div>
+          <div class="stanza-actions">
+            <button class="stanza-btn copy-btn btn-revealed" onclick="copyStanza(${i})" title="Salin kutipan">
+              <span class="stanza-btn-icon">📋</span>
+              <span>Salin</span>
+            </button>
+            <button class="stanza-btn download-btn btn-revealed" onclick="downloadStanzaPNG(${i})" title="Unduh sebagai gambar">
+              <span class="stanza-btn-icon">🖼️</span>
+              <span>Unduh PNG</span>
+            </button>
+          </div>
+        </div>`;
+    }).join('<div class="stanza-divider">✿</div>');
+
+    // Replace placeholders with real content
+    const body = document.getElementById('poemBody');
+    body.innerHTML = stanzasHTML;
+    body.classList.remove('poem-body-blurred', 'poem-locked-overlay');
+    body.classList.add('unlocked');
+
     // Reveal download full poem button
     const dlBtn = document.getElementById('downloadFullBtn');
     if (dlBtn) {
       dlBtn.classList.remove('btn-hidden');
       dlBtn.classList.add('btn-revealed');
     }
-    // Reveal all per-stanza buttons with staggered pop-in
-    document.querySelectorAll('.stanza-btn.btn-hidden').forEach((btn, idx) => {
-      setTimeout(() => {
-        btn.classList.remove('btn-hidden');
-        btn.classList.add('btn-revealed');
-      }, idx * 60);
-    });
-    // Auto remove banner after animation
-    setTimeout(() => banner.remove(), 500);
+
+    // Show music player and init it
+    document.getElementById('musicPlayer').style.display = '';
+    initPlayer();
+
   } else {
     // Wrong password — shake effect
     input.classList.remove('error');
