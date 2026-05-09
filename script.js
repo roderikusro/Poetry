@@ -233,12 +233,14 @@ function initPlayer() {
     return;
   }
 
+  // Always show the player UI (even if autoplay fails on mobile)
+  document.getElementById('musicPlayer').style.display = '';
   songTitleEl.textContent = poem.songTitle || 'Lagu Latar';
   songArtistEl.textContent = poem.songArtist || 'YouTube';
   playerArtwork.textContent = poem.emoji || '🎵';
 }
 
-// YouTube IFrame API callback (called automatically)
+// YouTube IFrame API callback (called automatically by the API)
 function onYouTubeIframeAPIReady() {
   if (!poem) return;
   // Don't auto-create player for private poems — wait until unlocked
@@ -265,13 +267,37 @@ function createYouTubePlayer() {
       autoplay: 0,
       controls: 0,
       loop: 1,
-      playlist: videoId
+      playlist: videoId,
+      playsinline: 1  // Important for iOS
     },
     events: {
       onReady: onPlayerReady,
       onStateChange: onPlayerStateChange
     }
   });
+}
+
+// Fallback: if YouTube API loaded before this script, fire manually
+// Also handles slow mobile connections with retry polling
+function ensureYouTubePlayer() {
+  if (ytPlayer) return; // Already created
+  if (!poem) return;
+  if (poem.isPrivate) return; // Wait for unlock
+
+  if (typeof YT !== 'undefined' && YT.Player) {
+    createYouTubePlayer();
+  } else {
+    // Retry every 500ms up to 10 seconds
+    let retries = 0;
+    const poller = setInterval(() => {
+      retries++;
+      if (typeof YT !== 'undefined' && YT.Player) {
+        clearInterval(poller);
+        createYouTubePlayer();
+      }
+      if (retries > 20) clearInterval(poller);
+    }, 500);
+  }
 }
 
 function onPlayerReady() {
@@ -635,3 +661,4 @@ function initStanzaTapToggle() {
 // ===== Initialize =====
 renderPoem();
 initStanzaTapToggle();
+ensureYouTubePlayer();
