@@ -81,10 +81,6 @@ function renderPoem() {
   // Footer
   document.getElementById('poemFooter').innerHTML = `
     <div class="poem-footer-actions">
-      <button class="like-poem-btn" id="likePoemBtn" onclick="toggleLikePoem()">
-        <span class="like-icon">🤍</span>
-        <span class="like-text">Suka puisi ini</span>
-      </button>
       <button class="download-full-btn ${poem.isPrivate ? 'btn-hidden' : ''}" id="downloadFullBtn" onclick="downloadFullPoemPNG()">
         <span>🖼️</span>
         <span>Unduh Puisi</span>
@@ -168,19 +164,7 @@ function getNextPoem() {
   return idx > 0 ? sorted[idx - 1] : null;
 }
 
-function toggleLikePoem() {
-  const btn = document.getElementById('likePoemBtn');
-  const icon = btn.querySelector('.like-icon');
-  const text = btn.querySelector('.like-text');
-  btn.classList.toggle('liked');
-  if (btn.classList.contains('liked')) {
-    icon.textContent = '💖';
-    text.textContent = 'Disukai!';
-  } else {
-    icon.textContent = '🤍';
-    text.textContent = 'Suka puisi ini';
-  }
-}
+
 
 // ===== YouTube Music Player =====
 let ytPlayer = null;
