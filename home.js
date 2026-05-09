@@ -50,7 +50,7 @@ function renderPoems() {
         <div class="poem-grid-emoji">${poem.emoji}</div>
         <h2 class="poem-grid-title">${poem.title}</h2>
         <p class="poem-grid-author">✍️ ${poem.author}</p>
-        <p class="poem-grid-excerpt ${poem.isPrivate ? 'poem-grid-excerpt--blurred' : ''}">${poem.excerpt}</p>
+        <p class="poem-grid-excerpt ${poem.isPrivate ? 'poem-grid-excerpt--blurred' : ''}">${poem.isPrivate ? '🔒 Puisi ini dilindungi kata sandi...' : poem.excerpt}</p>
         <div class="poem-grid-footer">
           <span class="poem-grid-date">${formatDate(poem.date)}</span>
           ${poem.isPrivate ? '<span class="poem-grid-lock">🔒</span>' : '<span class="poem-grid-read">→</span>'}
@@ -70,7 +70,7 @@ function renderPoems() {
         </div>
         <h2 class="poem-list-title">${poem.title}</h2>
         <p class="poem-list-author">✍️ ${poem.author}</p>
-        <p class="poem-list-excerpt ${poem.isPrivate ? 'poem-list-excerpt--blurred' : ''}">${poem.excerpt}</p>
+        <p class="poem-list-excerpt ${poem.isPrivate ? 'poem-list-excerpt--blurred' : ''}">${poem.isPrivate ? '🔒 Puisi ini dilindungi kata sandi...' : poem.excerpt}</p>
         <div class="poem-list-bottom">
           <div class="poem-list-tags">
             ${poem.tags.map(t => `<span class="poem-tag ${t.type}">${t.icon} ${t.label}</span>`).join('')}
