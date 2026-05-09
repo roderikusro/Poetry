@@ -14,7 +14,9 @@ const defaultPoems = [
       "Di malam yang sunyi aku mendengar,\nBisikan angin yang lembut menyapa,\nBintang-bintang berkedip tak henti,\nSeolah bercerita tentang rindu yang terlupa.",
       "Bulan menemani langkah kecilku,\nMenyinari jalan yang penuh bayang,\nDi setiap sudut kesunyian itu,\nAku menemukan kedamaian yang datang."
     ],
-    songIndex: 2
+    songTitle: "Clair de Lune",
+    songArtist: "Debussy",
+    youtubeUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY"
   },
   {
     id: 2,
@@ -28,7 +30,9 @@ const defaultPoems = [
       "Embun menetes di kelopak bunga,\nPagi menyapa dengan senyum hangat,\nMentari terbit membawa cahaya,\nDunia terasa begitu dekat.",
       "Kumbang kecil terbang riang,\nDari satu bunga ke bunga yang lain,\nSeperti hati yang sedang berpetualang,\nMencari makna di balik hujan."
     ],
-    songIndex: 0
+    songTitle: "Gymnopédie No.1",
+    songArtist: "Erik Satie",
+    youtubeUrl: "https://www.youtube.com/watch?v=S-Xm7s9eGxU"
   },
   {
     id: 3,
@@ -44,7 +48,9 @@ const defaultPoems = [
       "Ada kata yang tak pernah terucap,\nTersimpan rapi di lembar hati,\nSeperti surat yang tak pernah sampai,\nTapi selalu ditulis setiap hari.",
       "Jika angin bisa membawa pesan,\nAkan kukirimkan seribu rindu,\nAgar kau tahu di balik keheningan,\nAda cinta yang tumbuh untukmu."
     ],
-    songIndex: 3
+    songTitle: "Nocturne Op.9 No.2",
+    songArtist: "Chopin",
+    youtubeUrl: "https://www.youtube.com/watch?v=9E6b3swbnWg"
   },
   {
     id: 4,
@@ -61,7 +67,9 @@ const defaultPoems = [
       "Rasa buahnya tidak bisa ditebak\nBisa manis, dan pahit.\nBiji buahnya mirip dengan bentuk mahkota.",
       "Benih yang dianggap aneh itu.\nBuahnya memiliki kemampuan.\nKemampuan untuk pengisi ruang gelap.\nPenyembuh dari luka yang sengaja ditutupi.\nKunamain obat itu \"Shofia\""
     ],
-    songIndex: 1
+    songTitle: "River Flows in You",
+    songArtist: "Yiruma",
+    youtubeUrl: "https://www.youtube.com/watch?v=7maJOI3QMu0"
   },
   {
     id: 5,
@@ -78,7 +86,9 @@ const defaultPoems = [
       "Jangan takut pada jalan yang gelap,\nKarena bintang hanya terlihat di malam,\nDan bunga yang paling indah,\nTumbuh dari tanah yang pernah retak.",
       "Langkahmu mungkin kecil dan pelan,\nTapi setiap satu langkah bermakna,\nKarena perjalanan seribu mil,\nDimulai dari satu tekad yang nyata."
     ],
-    songIndex: 0
+    songTitle: "A Thousand Years",
+    songArtist: "Christina Perri",
+    youtubeUrl: "https://www.youtube.com/watch?v=rtOvBOTyX00"
   }
 ];
 
@@ -88,6 +98,20 @@ const songs = [
   { title: "Starry Night Waltz", artist: "Moonlit Piano", icon: "🌙", melody: "starry" },
   { title: "Cherry Blossom Breeze", artist: "Sakura Melodies", icon: "🌸", melody: "cherry" }
 ];
+
+// Extract YouTube video ID from various URL formats
+function getYouTubeId(url) {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/,
+    /^([\w-]{11})$/
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
 
 // ===== Admin Config =====
 const ADMIN_PASSWORD = "admin2026";

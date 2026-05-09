@@ -37,7 +37,6 @@ function initDashboard() {
   renderAdminPoemList();
   initEmojiPicker();
   initTagPicker();
-  initSongSelector();
   addStanzaField(); // First stanza field
   setDefaultDate();
 }
@@ -153,13 +152,7 @@ function toggleTag(type) {
   });
 }
 
-// ===== Song Selector =====
-function initSongSelector() {
-  const sel = document.getElementById('poemSong');
-  sel.innerHTML = songs.map((s, i) =>
-    `<option value="${i}">${s.icon} ${s.title} — ${s.artist}</option>`
-  ).join('');
-}
+// (Song selector removed — now using YouTube URL input)
 
 // ===== Stanza Fields =====
 let stanzaCount = 0;
@@ -207,7 +200,9 @@ function savePoem() {
   const emoji = document.getElementById('poemEmoji').value;
   const date = document.getElementById('poemDate').value;
   const excerpt = document.getElementById('poemExcerpt').value.trim();
-  const songIndex = parseInt(document.getElementById('poemSong').value);
+  const youtubeUrl = document.getElementById('poemYoutubeUrl').value.trim();
+  const songTitle = document.getElementById('poemSongTitle').value.trim();
+  const songArtist = document.getElementById('poemSongArtist').value.trim();
   const isPrivate = document.getElementById('poemPrivate').checked;
   const password = document.getElementById('poemPassword').value.trim();
   const editId = document.getElementById('editPoemId').value;
@@ -232,7 +227,10 @@ function savePoem() {
   const poemData = {
     title, author, emoji, date, tags,
     excerpt: autoExcerpt,
-    stanzas, songIndex
+    stanzas,
+    youtubeUrl: youtubeUrl || '',
+    songTitle: songTitle || '',
+    songArtist: songArtist || ''
   };
 
   if (isPrivate) {
@@ -287,7 +285,9 @@ function editPoem(id) {
   document.getElementById('poemAuthor').value = p.author;
   document.getElementById('poemDate').value = p.date;
   document.getElementById('poemExcerpt').value = p.excerpt;
-  document.getElementById('poemSong').value = p.songIndex || 0;
+  document.getElementById('poemYoutubeUrl').value = p.youtubeUrl || '';
+  document.getElementById('poemSongTitle').value = p.songTitle || '';
+  document.getElementById('poemSongArtist').value = p.songArtist || '';
 
   // Emoji
   selectEmoji(p.emoji);
@@ -333,7 +333,9 @@ function resetForm() {
   document.getElementById('poemPrivate').checked = false;
   document.getElementById('poemPassword').value = '';
   document.getElementById('privateFields').style.display = 'none';
-  document.getElementById('poemSong').value = 0;
+  document.getElementById('poemYoutubeUrl').value = '';
+  document.getElementById('poemSongTitle').value = '';
+  document.getElementById('poemSongArtist').value = '';
   selectEmoji('🌸');
   selectedTags = [];
   document.querySelectorAll('.tag-option').forEach(el => el.classList.remove('selected'));
