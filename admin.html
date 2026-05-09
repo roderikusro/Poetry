@@ -115,11 +115,33 @@
 
           <div class="admin-field">
             <label class="admin-label">🎵 Lagu Latar</label>
-            <select class="admin-input admin-select" id="poemSongSelect" onchange="onSongSelect()">
-              <option value="">— Tanpa musik —</option>
-              <!-- Filled by JS (defaultSongs) -->
-              <option value="custom">🔗 Custom YouTube URL...</option>
-            </select>
+            <div class="song-select-row">
+              <select class="admin-input admin-select" id="poemSongSelect" onchange="onSongSelect()" style="flex:1;">
+                <option value="">— Tanpa musik —</option>
+                <!-- Filled by JS (defaultSongs) -->
+                <option value="custom">🔗 Custom YouTube URL...</option>
+              </select>
+              <button type="button" class="admin-preview-btn" id="previewBtn" onclick="togglePreview()" title="Preview lagu">
+                ▶ Preview
+              </button>
+            </div>
+          </div>
+
+          <!-- Song Preview Player -->
+          <div class="admin-preview-player" id="previewPlayer" style="display:none;">
+            <div class="preview-player-inner">
+              <div class="preview-info">
+                <span class="preview-icon" id="previewIcon">🎵</span>
+                <div>
+                  <div class="preview-title" id="previewTitle">—</div>
+                  <div class="preview-artist" id="previewArtist">—</div>
+                </div>
+              </div>
+              <button type="button" class="preview-stop-btn" onclick="stopPreview()">⏹ Stop</button>
+            </div>
+            <div id="adminYtContainer" style="margin-top:8px;border-radius:12px;overflow:hidden;">
+              <div id="adminYtPlayer"></div>
+            </div>
           </div>
 
           <div id="customSongFields" style="display:none;">
@@ -233,6 +255,7 @@
 
   </div>
 
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script src="data.js"></script>
   <script src="admin.js"></script>
 </body>

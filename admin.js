@@ -192,6 +192,74 @@ function onSongSelect() {
   }
 }
 
+// ===== Song Preview =====
+let adminYtPlayer = null;
+let previewActive = false;
+
+function togglePreview() {
+  if (previewActive) {
+    stopPreview();
+    return;
+  }
+
+  const url = document.getElementById('poemYoutubeUrl').value.trim();
+  const videoId = getYouTubeId(url);
+
+  if (!videoId) {
+    alert('⚠️ Pilih lagu terlebih dahulu, atau paste YouTube URL.');
+    return;
+  }
+
+  const title = document.getElementById('poemSongTitle').value || 'Lagu';
+  const artist = document.getElementById('poemSongArtist').value || 'YouTube';
+
+  // Show preview panel
+  document.getElementById('previewPlayer').style.display = 'block';
+  document.getElementById('previewTitle').textContent = title;
+  document.getElementById('previewArtist').textContent = artist;
+  document.getElementById('previewBtn').innerHTML = '⏸ Stop';
+
+  previewActive = true;
+
+  // Destroy old player if exists
+  if (adminYtPlayer && adminYtPlayer.destroy) {
+    try { adminYtPlayer.destroy(); } catch(e) {}
+    adminYtPlayer = null;
+  }
+
+  // Re-create the div
+  document.getElementById('adminYtContainer').innerHTML = '<div id="adminYtPlayer"></div>';
+
+  // Create YouTube player
+  adminYtPlayer = new YT.Player('adminYtPlayer', {
+    height: '180',
+    width: '100%',
+    videoId: videoId,
+    playerVars: {
+      autoplay: 1,
+      controls: 1,
+      modestbranding: 1,
+      rel: 0
+    }
+  });
+}
+
+function stopPreview() {
+  previewActive = false;
+  document.getElementById('previewPlayer').style.display = 'none';
+  document.getElementById('previewBtn').innerHTML = '▶ Preview';
+
+  if (adminYtPlayer && adminYtPlayer.destroy) {
+    try { adminYtPlayer.destroy(); } catch(e) {}
+    adminYtPlayer = null;
+  }
+  document.getElementById('adminYtContainer').innerHTML = '<div id="adminYtPlayer"></div>';
+}
+
+// Prevent YouTube API from auto-initializing on admin page
+function onYouTubeIframeAPIReady() {
+  // Do nothing on admin — preview is manual
+}
 // ===== Stanza Fields =====
 let stanzaCount = 0;
 
