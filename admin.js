@@ -408,7 +408,9 @@ function publishToFile() {
     obj += `    stanzas: [\n`;
     obj += p.stanzas.map(s => `      ${JSON.stringify(s)}`).join(',\n');
     obj += `\n    ],\n`;
-    obj += `    songIndex: ${p.songIndex || 0}\n`;
+    obj += `    songTitle: ${JSON.stringify(p.songTitle || '')},\n`;
+    obj += `    songArtist: ${JSON.stringify(p.songArtist || '')},\n`;
+    obj += `    youtubeUrl: ${JSON.stringify(p.youtubeUrl || '')}\n`;
     obj += `  }`;
     return obj;
   }).join(',\n');
@@ -426,6 +428,20 @@ const songs = [
   { title: "Starry Night Waltz", artist: "Moonlit Piano", icon: "🌙", melody: "starry" },
   { title: "Cherry Blossom Breeze", artist: "Sakura Melodies", icon: "🌸", melody: "cherry" }
 ];
+
+// Extract YouTube video ID from various URL formats
+function getYouTubeId(url) {
+  if (!url) return null;
+  const patterns = [
+    /(?:youtube\\.com\\/watch\\?v=|youtu\\.be\\/|youtube\\.com\\/embed\\/)([\\\\w-]{11})/,
+    /^([\\\\w-]{11})$/
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
 
 // ===== Admin Config =====
 const ADMIN_PASSWORD = ${JSON.stringify(ADMIN_PASSWORD)};
@@ -456,7 +472,7 @@ const poems = getPoems();
 function formatDate(dateStr) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const d = new Date(dateStr);
-  return \`\${d.getDate()} \${months[d.getMonth()]} \${d.getFullYear()}\`;
+  return \\\`\\\${d.getDate()} \\\${months[d.getMonth()]} \\\${d.getFullYear()}\\\`;
 }
 
 function getPoemById(id) {
