@@ -520,12 +520,15 @@ function importData(event) {
   const reader = new FileReader();
   reader.onload = function (e) {
     try {
-      const data = JSON.parse(e.target.result);
-      if (!Array.isArray(data)) throw new Error('Format tidak valid');
+      const raw = JSON.parse(e.target.result);
+      if (!Array.isArray(raw)) throw new Error('Format tidak valid');
+      // Migrate old formats → current schema
+      const data = normalizePoemArray(raw);
       savePoems(data);
       renderStats();
       renderAdminPoemList();
       alert('✅ Data berhasil diimpor! ' + data.length + ' puisi dimuat.');
+
     } catch (err) {
       alert('❌ Gagal mengimpor data: ' + err.message);
     }

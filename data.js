@@ -124,13 +124,54 @@ function getYouTubeId(url) {
 const ADMIN_PASSWORD = "admin2026";
 const STORAGE_KEY = "roderikus_poems";
 
+// ===== Data Version / Schema Migration =====
+// Normalizes any old export format → current format.
+// This ensures backward compatibility across all export versions.
+function normalizePoem(p) {
+  const out = Object.assign({}, p);
+
+  // --- v1 → v2: songIndex (number) → youtubeUrl/songTitle/songArtist ---
+  if (typeof out.songIndex === 'number' && !out.youtubeUrl) {
+    const song = defaultSongs[out.songIndex];
+    if (song) {
+      out.youtubeUrl  = song.youtubeUrl  || '';
+      out.songTitle   = song.title       || '';
+      out.songArtist  = song.artist      || '';
+    }
+    delete out.songIndex;
+  }
+
+  // --- Ensure required fields always exist ---
+  out.youtubeUrl  = out.youtubeUrl  ?? '';
+  out.songTitle   = out.songTitle   ?? '';
+  out.songArtist  = out.songArtist  ?? '';
+  out.excerpt     = out.excerpt     ?? '';
+  out.author      = out.author      ?? 'Anonim';
+  out.emoji       = out.emoji       ?? '🌸';
+  out.tags        = Array.isArray(out.tags) ? out.tags : [];
+  out.stanzas     = Array.isArray(out.stanzas) ? out.stanzas : [''];
+  out.isPrivate   = out.isPrivate   ?? false;
+
+  // Remove password field if poem is not private (clean export)
+  if (!out.isPrivate) delete out.password;
+
+  return out;
+}
+
+function normalizePoemArray(arr) {
+  return arr.map(normalizePoem);
+}
+
 // ===== Data Layer — merges defaults with localStorage =====
 function getPoems() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    try { return JSON.parse(stored); } catch (e) { /* fallback */ }
+    try {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) return normalizePoemArray(parsed);
+    } catch (e) { /* fallback to defaults */ }
   }
-  return [...defaultPoems];
+  return normalizePoemArray([...defaultPoems]);
 }
 
 function savePoems(poemArr) {
@@ -145,11 +186,12 @@ function getNextId() {
 // Live poems array (used by home.js, script.js)
 const poems = getPoems();
 
+
 // ===== Utility =====
 function formatDate(dateStr) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const d = new Date(dateStr);
-  return \`\${d.getDate()} \${months[d.getMonth()]} \${d.getFullYear()}\`;
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function getPoemById(id) {
