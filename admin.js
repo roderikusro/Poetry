@@ -580,9 +580,11 @@ function resetToDefaults() {
 
 // ===== PUBLISH: Generate data.js for GitHub =====
 function publishToFile() {
-  const all = getPoems();
 
-  // Build each poem as a JS object string
+  const all = getPoems();
+  const songs = typeof defaultSongs !== 'undefined' ? defaultSongs : [];
+  
+  // Format each poem object for the file
   const poemsStr = all.map(p => {
     let obj = `  {\n`;
     obj += `    id: ${p.id},\n`;
@@ -607,6 +609,7 @@ function publishToFile() {
   }).join(',\n');
 
   const fileContent = `// ===== Shared Poem & Song Data =====
+// Generated: ${new Date().toLocaleString()}
 
 // Default poems (shipped with the site)
 const defaultPoems = [
@@ -614,20 +617,14 @@ ${poemsStr}
 ];
 
 // ===== Default Background Songs (YouTube) =====
-const defaultSongs = [
-  { title: "Clair de Lune", artist: "Debussy", icon: "🌙", youtubeUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY" },
-  { title: "River Flows in You", artist: "Yiruma", icon: "🌊", youtubeUrl: "https://www.youtube.com/watch?v=7maJOI3QMu0" },
-  { title: "Gymnopédie No.1", artist: "Erik Satie", icon: "☁️", youtubeUrl: "https://www.youtube.com/watch?v=S-Xm7s9eGxU" },
-  { title: "Nocturne Op.9 No.2", artist: "Chopin", icon: "🌌", youtubeUrl: "https://www.youtube.com/watch?v=9E6b3swbnWg" },
-  { title: "Experience", artist: "Ludovico Einaudi", icon: "✨", youtubeUrl: "https://www.youtube.com/watch?v=_VONMkKkdf4" }
-];
+const defaultSongs = ${JSON.stringify(songs, null, 2)};
 
 // Extract YouTube video ID from various URL formats
 function getYouTubeId(url) {
   if (!url) return null;
   const patterns = [
-    /(?:youtube\\.com\\/watch\\?v=|youtu\\.be\\/|youtube\\.com\\/embed\\/)([\\\\w-]{11})/,
-    /^([\\\\w-]{11})$/
+    /(?:youtube\\.com\\/watch\\?v=|youtu\\.be\\/|youtube\\.com\\/embed\\/)([\\w-]{11})/,
+    /^([\\w-]{11})$/
   ];
   for (const p of patterns) {
     const m = url.match(p);
@@ -644,7 +641,10 @@ const STORAGE_KEY = "roderikus_poems";
 function getPoems() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    try { return JSON.parse(stored); } catch (e) { /* fallback */ }
+    try { 
+      const data = JSON.parse(stored);
+      return Array.isArray(data) ? normalizePoemArray(data) : [...defaultPoems];
+    } catch (e) { return [...defaultPoems]; }
   }
   return [...defaultPoems];
 }
@@ -658,6 +658,19 @@ function getNextId() {
   return all.length > 0 ? Math.max(...all.map(p => p.id)) + 1 : 1;
 }
 
+// Migration layer: ensures old data formats are compatible with new features
+function normalizePoemArray(arr) {
+  return arr.map(p => normalizePoem(p));
+}
+
+function normalizePoem(p) {
+  const poem = { ...p };
+  if (!poem.tags) poem.tags = [];
+  if (!poem.stanzas) poem.stanzas = [];
+  poem.stanzas = poem.stanzas.map(s => typeof s === 'string' ? s : JSON.stringify(s));
+  return poem;
+}
+
 // Live poems array (used by home.js, script.js)
 const poems = getPoems();
 
@@ -665,7 +678,8 @@ const poems = getPoems();
 function formatDate(dateStr) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const d = new Date(dateStr);
-  return \\\`\\\${d.getDate()} \\\${months[d.getMonth()]} \\\${d.getFullYear()}\\\`;
+  if (isNaN(d.getTime())) return dateStr;
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 }
 
 function getPoemById(id) {
@@ -690,5 +704,6 @@ const availableEmojis = ["🌙", "🌻", "💌", "🌧️", "🦋", "🌸", "�
   link.href = URL.createObjectURL(blob);
   link.click();
   URL.revokeObjectURL(link.href);
-  alert('✅ File data.js berhasil diunduh!\\n\\nLangkah selanjutnya:\\n1. Replace file data.js di folder project\\n2. Jalankan: git add . → git commit → git push\\n3. Semua device akan melihat perubahan!');
+  showActionToast('✅ File data.js siap diunduh!');
+}
 }

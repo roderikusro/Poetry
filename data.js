@@ -32,26 +32,11 @@ const defaultPoems = [
       "\"Kamu terlambat,\" kataku sambil menutupi senyum,  <br>Tapi sebenarnya, aku tidak menunggu lama.<br>Langkahmu yang mendekat, Membuat aku tenang,<br>Seolah kebahagiaan hanya untuk kita berdua saja.",
       "Kita mulai menyusuri jalan yang panjang,  <br>Kakiku berusaha mengikuti langkah kakimu yang cepat.<br>Bukan hanya tidak ingin tertinggal,<br>Tapi bagiku, ini berarti aku ingin terus dekat denganmu.",
       "Aku ingin mengatakan sesuatu,  <br>Bahwa setiap hari menjadi lebih manis karenamu.  <br>Namun kata-kata terhenti di ujung bibir,  <br>Hanya mataku yang bicara lebih jelas.",
-      "Langit biru, udara hangat, dan burung bernyanyi riang.<br>Dan aku hanya ingin langkah ini tidak pernah usai.  <br>Bersamamu, segala sesuatu lebih hidup,  <br>Lebih indah, lebih berarti, lebih baik untuk kita."
+      "Langit biru, udara hangat, dan burung bernyanyi riang.<br>And aku hanya ingin langkah ini tidak pernah usai.  <br>Bersamamu, segala sesuatu lebih hidup,  <br>Lebih indah, lebih berarti, lebih baik untuk kita."
     ],
     songTitle: "",
     songArtist: "",
     youtubeUrl: ""
-  },
-  {
-    id: 3,
-    title: "Vincent Van Gogh",
-    author: "Roderikus",
-    emoji: "💌",
-    date: "2024-12-09",
-    tags: [{ label: "Cinta", icon: "💕", type: "love" }, { label: "Mimpi", icon: "✨", type: "dream" }],
-    excerpt: "Ada kata yang tak pernah terucap, tersimpan rapi di lembar hati...",
-    stanzas: [
-      "<div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">\"Tetapi, Kamu harus mencintai </span></div><div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">dengan simpati yang tinggi, serius, dan intim. </span></div><div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">Dengan kemauan, dengan kecerdasan, </span></div><div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">dan kamu harus selalu berusaha mencari tahu, </span></div><div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">lebih baik, dan lebih banyak lagi\"</span></div>"
-    ],
-    songTitle: "Experience",
-    songArtist: "Ludovico Einaudi",
-    youtubeUrl: "https://www.youtube.com/watch?v=_VONMkKkdf4"
   }
 ];
 
@@ -110,11 +95,8 @@ function normalizePoemArray(arr) {
 
 function normalizePoem(p) {
   const poem = { ...p };
-  // Ensure tags exist
   if (!poem.tags) poem.tags = [];
-  // Ensure stanzas exist
   if (!poem.stanzas) poem.stanzas = [];
-  // Future proofing: ensure every stanza is a string
   poem.stanzas = poem.stanzas.map(s => typeof s === 'string' ? s : JSON.stringify(s));
   return poem;
 }
