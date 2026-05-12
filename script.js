@@ -93,7 +93,8 @@ function renderPoem() {
             </button>
           </div>
         </div>`;
-    }).join('<div class="stanza-divider">✿</div>');
+    }).join('<div class="stanza-divider"><span>✦</span></div>');
+
 
     document.getElementById('poemBody').innerHTML = stanzasHTML;
   }
