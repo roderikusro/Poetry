@@ -74,10 +74,12 @@ function renderPoem() {
 
   } else {
     const stanzasHTML = poem.stanzas.map((stanza, i) => {
-      const lines = stanza.replace(/\n/g, '<br>');
+      // Detect HTML stanza (from rich text editor) vs plain text
+      const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
+      const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
       return `
         <div class="poem-stanza-wrapper">
-          <div class="poem-stanza" data-stanza-idx="${i}">${lines}</div>
+          <div class="poem-stanza" data-stanza-idx="${i}">${content}</div>
           <div class="stanza-actions">
             <button class="stanza-btn copy-btn" onclick="copyStanza(${i})" title="Salin kutipan">
               <span class="stanza-btn-icon">📋</span>
@@ -129,10 +131,11 @@ function tryUnlock() {
 
     // Build real stanza HTML
     const stanzasHTML = poem.stanzas.map((stanza, i) => {
-      const lines = stanza.replace(/\n/g, '<br>');
+      const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
+      const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
       return `
         <div class="poem-stanza-wrapper">
-          <div class="poem-stanza" data-stanza-idx="${i}">${lines}</div>
+          <div class="poem-stanza" data-stanza-idx="${i}">${content}</div>
           <div class="stanza-actions">
             <button class="stanza-btn copy-btn btn-revealed" onclick="copyStanza(${i})" title="Salin kutipan">
               <span class="stanza-btn-icon">📋</span>
@@ -388,232 +391,93 @@ function copyStanza(idx) {
   });
 }
 
-// ===== Download Stanza as PNG (formal + sweet) =====
+// ===== Helper: build off-screen PNG card =====
+function buildPNGCard(innerHTML, width = 800) {
+  const card = document.createElement('div');
+  card.style.cssText = [
+    `position:fixed`, `top:-9999px`, `left:-9999px`,
+    `width:${width}px`, `background:linear-gradient(135deg,#1a1528,#13101e)`,
+    `padding:48px 60px`, `box-sizing:border-box`,
+    `font-family:Georgia,"Times New Roman",serif`,
+    `color:#e0d8ec`, `border-radius:0`
+  ].join(';');
+  card.innerHTML = innerHTML;
+  document.body.appendChild(card);
+  return card;
+}
+
+// ===== Download Stanza as PNG (html2canvas — preserves formatting) =====
 function downloadStanzaPNG(idx) {
+  if (typeof html2canvas === 'undefined') {
+    showActionToast('⚠️ Modul gambar belum siap, coba lagi.');
+    return;
+  }
   const stanza = poem.stanzas[idx];
-  const lines = stanza.split('\n');
+  const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
+  const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
 
-  const W = 800;
-  const LINE_H = 42;
-  const textH = lines.length * LINE_H;
-  const H = Math.max(360, textH + 220);
+  const card = buildPNGCard(`
+    <div style="border-left:4px solid #d4a574;padding-left:20px;margin-bottom:24px;">
+      <div style="font-size:48px;opacity:.2;font-family:serif;line-height:1;margin-bottom:8px;">\u201C</div>
+      <div style="font-size:21px;line-height:1.9;color:#e0d8ec;">${content}</div>
+      <div style="font-size:42px;opacity:.2;font-family:serif;line-height:1;text-align:right;margin-top:4px;">\u201D</div>
+    </div>
+    <div style="border-top:1px solid #3a3050;padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-style:italic;font-size:13px;color:#9a8fb0;">&mdash; ${poem.author} &nbsp;\u00B7&nbsp; ${poem.title}</span>
+      <span style="font-size:11px;color:rgba(154,143,176,.4);">roderikusro.github.io/Poem</span>
+    </div>
+  `);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  // ---- Background: dark navy ----
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-  bgGrad.addColorStop(0, '#1a1528');
-  bgGrad.addColorStop(1, '#13101e');
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, W, H);
-
-  // ---- Outer border ----
-  ctx.strokeStyle = '#2e2840';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
-
-  // ---- Top accent bar (gradient) ----
-  const accentGrad = ctx.createLinearGradient(0, 0, W, 0);
-  accentGrad.addColorStop(0, '#d4a574');
-  accentGrad.addColorStop(1, '#8b7ec8');
-  ctx.fillStyle = accentGrad;
-  ctx.fillRect(0, 0, W, 4);
-
-  // ---- Subtle bottom bar ----
-  ctx.fillStyle = accentGrad;
-  ctx.fillRect(0, H - 4, W, 4);
-
-  // ---- Opening quote mark ----
-  ctx.textAlign = 'left';
-  ctx.font = 'bold 64px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = 'rgba(212,165,116,0.3)';
-  ctx.fillText('\u201C', 44, 78);
-
-  // ---- Stanza text (centered) ----
-  ctx.textAlign = 'center';
-  ctx.font = '400 22px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#e0d8ec';
-  const startY = H / 2 - (textH / 2) + LINE_H * 0.6;
-  lines.forEach((line, i) => {
-    ctx.fillText(line, W / 2, startY + i * LINE_H);
-  });
-
-  // ---- Closing quote mark ----
-  ctx.textAlign = 'right';
-  ctx.font = 'bold 64px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = 'rgba(139,126,200,0.3)';
-  ctx.fillText('\u201D', W - 44, H - 68);
-
-  // ---- Thin divider line ----
-  const divGrad = ctx.createLinearGradient(100, 0, W - 100, 0);
-  divGrad.addColorStop(0, 'transparent');
-  divGrad.addColorStop(0.3, '#3a3050');
-  divGrad.addColorStop(0.7, '#3a3050');
-  divGrad.addColorStop(1, 'transparent');
-  ctx.strokeStyle = divGrad;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(100, H - 54);
-  ctx.lineTo(W - 100, H - 54);
-  ctx.stroke();
-
-  // ---- Credit: author · title ----
-  ctx.textAlign = 'center';
-  ctx.font = 'italic 14px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#9a8fb0';
-  ctx.fillText(`\u2014 ${poem.author}  \u00B7  ${poem.title}`, W / 2, H - 34);
-
-  // ---- Watermark ----
-  ctx.font = '11px Arial, sans-serif';
-  ctx.fillStyle = 'rgba(154,143,176,0.4)';
-  ctx.fillText('roderikusro.github.io/Poem', W / 2, H - 14);
-
-  // ---- Download ----
-  const link = document.createElement('a');
-  link.download = `${poem.title.replace(/\s+/g, '_')}_bait_${idx + 1}.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-  showActionToast('\uD83D\uDDBC\uFE0F Gambar berhasil diunduh!');
+  html2canvas(card, { scale: 2, backgroundColor: null, logging: false }).then(canvas => {
+    card.remove();
+    const link = document.createElement('a');
+    link.download = `${poem.title.replace(/\s+/g,'_')}_bait_${idx+1}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showActionToast('\uD83D\uDDBC\uFE0F Gambar berhasil diunduh!');
+  }).catch(() => { card.remove(); showActionToast('❌ Gagal mengunduh gambar.'); });
 }
 
-// ===== Download Full Poem as PNG (responsive height) =====
+// ===== Download Full Poem as PNG (html2canvas — preserves formatting) =====
 function downloadFullPoemPNG() {
-  const W = 800;
-  const LINE_H = 38;
-  const PAD_X = 100;
+  if (typeof html2canvas === 'undefined') {
+    showActionToast('⚠️ Modul gambar belum siap, coba lagi.');
+    return;
+  }
 
-  // Calculate total canvas height dynamically
-  let totalH = 0;
-  totalH += 40;  // top padding
-  totalH += 60;  // emoji
-  totalH += 44;  // title
-  totalH += 30;  // author + date
-  totalH += 50;  // spacer after header
-  poem.stanzas.forEach((stanza, i) => {
-    totalH += stanza.split('\n').length * LINE_H;
-    totalH += 24; // bottom padding per stanza
-    if (i < poem.stanzas.length - 1) totalH += 44; // divider flower
-  });
-  totalH += 60;  // footer spacer
-  totalH += 20;  // watermark line
-  totalH += 30;  // bottom padding
+  const stanzasHTML = poem.stanzas.map((stanza, si) => {
+    const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
+    const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
+    const divider = si < poem.stanzas.length - 1
+      ? '<div style="text-align:center;color:#6b9e8a;font-size:16px;margin:20px 0;">&#x2022;</div>'
+      : '';
+    return `<div style="font-size:19px;line-height:2;color:#e0d8ec;">${content}</div>${divider}`;
+  }).join('');
 
-  const H = Math.max(500, totalH);
+  const card = buildPNGCard(`
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="font-size:44px;margin-bottom:10px;">${poem.emoji}</div>
+      <div style="font-size:28px;font-weight:bold;color:#d4a574;margin-bottom:6px;">${poem.title}</div>
+      <div style="font-style:italic;font-size:14px;color:#9a8fb0;">${poem.author} &nbsp;\u00B7&nbsp; ${formatDate(poem.date)}</div>
+      <div style="height:1px;background:linear-gradient(90deg,transparent,#3a3050,transparent);margin:20px auto;width:80%;"></div>
+    </div>
+    ${stanzasHTML}
+    <div style="border-top:1px solid #3a3050;padding-top:16px;margin-top:32px;display:flex;justify-content:space-between;">
+      <span style="font-style:italic;font-size:13px;color:#9a8fb0;">&mdash; ${poem.author} &nbsp;\u00B7&nbsp; ${poem.title}</span>
+      <span style="font-size:11px;color:rgba(154,143,176,.4);">roderikusro.github.io/Poem</span>
+    </div>
+  `);
 
-  const canvas = document.createElement('canvas');
-  canvas.width = W;
-  canvas.height = H;
-  const ctx = canvas.getContext('2d');
-
-  // ---- Background ----
-  const bgGrad = ctx.createLinearGradient(0, 0, 0, H);
-  bgGrad.addColorStop(0, '#1a1528');
-  bgGrad.addColorStop(1, '#13101e');
-  ctx.fillStyle = bgGrad;
-  ctx.fillRect(0, 0, W, H);
-
-  // ---- Border ----
-  ctx.strokeStyle = '#2e2840';
-  ctx.lineWidth = 1;
-  ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
-
-  // ---- Top accent bar ----
-  const accentGrad = ctx.createLinearGradient(0, 0, W, 0);
-  accentGrad.addColorStop(0, '#d4a574');
-  accentGrad.addColorStop(0.5, '#8b7ec8');
-  accentGrad.addColorStop(1, '#6b9e8a');
-  ctx.fillStyle = accentGrad;
-  ctx.fillRect(0, 0, W, 5);
-  ctx.fillRect(0, H - 5, W, 5);
-
-  let y = 50;
-
-  // ---- Emoji ----
-  ctx.textAlign = 'center';
-  ctx.font = '40px serif';
-  ctx.fillText(poem.emoji, W / 2, y + 10);
-  y += 58;
-
-  // ---- Title ----
-  ctx.font = 'bold 30px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#d4a574';
-  ctx.fillText(poem.title, W / 2, y);
-  y += 32;
-
-  // ---- Author · Date ----
-  ctx.font = 'italic 15px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#9a8fb0';
-  ctx.fillText(`${poem.author}  \u00B7  ${formatDate(poem.date)}`, W / 2, y);
-  y += 40;
-
-  // ---- Header divider ----
-  const divGrad = ctx.createLinearGradient(PAD_X, 0, W - PAD_X, 0);
-  divGrad.addColorStop(0, 'transparent');
-  divGrad.addColorStop(0.3, '#3a3050');
-  divGrad.addColorStop(0.7, '#3a3050');
-  divGrad.addColorStop(1, 'transparent');
-  ctx.strokeStyle = divGrad;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(PAD_X, y);
-  ctx.lineTo(W - PAD_X, y);
-  ctx.stroke();
-  y += 36;
-
-  // ---- Stanzas ----
-  poem.stanzas.forEach((stanza, si) => {
-    const lines = stanza.split('\n');
-    ctx.textAlign = 'center';
-    ctx.font = '400 19px Georgia, "Times New Roman", serif';
-    ctx.fillStyle = '#e0d8ec';
-    lines.forEach(line => {
-      ctx.fillText(line, W / 2, y);
-      y += LINE_H;
-    });
-    y += 20;
-
-    // Divider between stanzas
-    if (si < poem.stanzas.length - 1) {
-      ctx.font = '16px serif';
-      ctx.fillStyle = '#6b9e8a';
-      ctx.fillText('\u2022', W / 2, y + 6);
-      y += 40;
-    }
-  });
-
-  y += 30;
-
-  // ---- Footer divider ----
-  ctx.strokeStyle = divGrad;
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(PAD_X, y);
-  ctx.lineTo(W - PAD_X, y);
-  ctx.stroke();
-  y += 22;
-
-  // ---- Credit ----
-  ctx.textAlign = 'center';
-  ctx.font = 'italic 13px Georgia, "Times New Roman", serif';
-  ctx.fillStyle = '#9a8fb0';
-  ctx.fillText(`\u2014 ${poem.author}  \u00B7  ${poem.title}`, W / 2, y);
-  y += 20;
-
-  // ---- Watermark ----
-  ctx.font = '11px Arial, sans-serif';
-  ctx.fillStyle = 'rgba(154,143,176,0.4)';
-  ctx.fillText('roderikusro.github.io/Poem', W / 2, y);
-
-  // ---- Download ----
-  const link = document.createElement('a');
-  link.download = `${poem.title.replace(/\s+/g, '_')}_full.png`;
-  link.href = canvas.toDataURL('image/png');
-  link.click();
-  showActionToast('\uD83D\uDDBC\uFE0F Puisi lengkap berhasil diunduh!');
+  html2canvas(card, { scale: 2, backgroundColor: null, logging: false }).then(canvas => {
+    card.remove();
+    const link = document.createElement('a');
+    link.download = `${poem.title.replace(/\s+/g,'_')}_full.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+    showActionToast('\uD83D\uDDBC\uFE0F Puisi lengkap berhasil diunduh!');
+  }).catch(() => { card.remove(); showActionToast('❌ Gagal mengunduh gambar.'); });
 }
+
 
 // ===== Action Toast =====
 function showActionToast(msg) {
