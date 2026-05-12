@@ -4,62 +4,65 @@
 const defaultPoems = [
   {
     id: 1,
-    title: "Malam yang Sunyi",
-    author: "Anonim",
+    title: "Amsal 31-10",
+    author: "Roderikus",
     emoji: "🌙",
-    date: "2025-12-15",
+    date: "2024-11-05",
     tags: [{ label: "Mimpi", icon: "✨", type: "dream" }, { label: "Alam", icon: "🌿", type: "nature" }],
     excerpt: "Di malam yang sunyi aku mendengar, bisikan angin yang lembut menyapa...",
     stanzas: [
-      "Di malam yang sunyi aku mendengar,\nBisikan angin yang lembut menyapa,\nBintang-bintang berkedip tak henti,\nSeolah bercerita tentang rindu yang terlupa.",
-      "Bulan menemani langkah kecilku,\nMenyinari jalan yang penuh bayang,\nDi setiap sudut kesunyian itu,\nAku menemukan kedamaian yang datang."
+      "Di atas altar, di bawah basilika santo petrus, \ndi belakang tubuh kristus, di sampingku perempuan ini. \nMengenakan mantilla putih, gaun putih.\nKurasakan mantilla tidak bisa menutupi cantikmu, \ndan gaun panjang kalah elegan dengan kamu.",
+      "Ia lebih berharga daripada permata,\ntidak bohong didalam matanya bisa menangkap cahaya di sekitarnya. \nSatu tangannya saja tidak ingin kulepas, dan dua tangannya membuatku nyaman.",
+      "Berada di antara kita, menjadi saksi doa kita. \nKita bersama membuat pengakuan, satu hati, satu jiwa, satu raga.\nKita berjanji bersama dalam suka dan duka, sehat maupun sakit. \nDengan cincin melekat, kuminta dia menjadi milikku."
     ],
-    songTitle: "Clair de Lune",
-    songArtist: "Debussy",
-    youtubeUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY"
+    songTitle: "",
+    songArtist: "",
+    youtubeUrl: ""
   },
   {
     id: 2,
-    title: "Bunga di Pagi Hari",
-    author: "Anonim",
+    title: "Taman Bunga",
+    author: "Roderikus",
     emoji: "🌻",
-    date: "2026-01-22",
+    date: "2025-01-22",
     tags: [{ label: "Alam", icon: "🌿", type: "nature" }, { label: "Harapan", icon: "🌟", type: "hope" }],
     excerpt: "Embun menetes di kelopak bunga, pagi menyapa dengan senyum hangat...",
     stanzas: [
-      "Embun menetes di kelopak bunga,\nPagi menyapa dengan senyum hangat,\nMentari terbit membawa cahaya,\nDunia terasa begitu dekat.",
-      "Kumbang kecil terbang riang,\nDari satu bunga ke bunga yang lain,\nSeperti hati yang sedang berpetualang,\nMencari makna di balik hujan."
+      "Aku berjalan di taman bunga,  \nUdara segar membelai rambutku.  \nDi kejauhan, kulihat kamu datang, \nDengan senyum yang menghilangkan kesunyian.",
+      "\"Kamu terlambat,\" kataku sambil menutupi senyum,  \nTapi sebenarnya, aku tidak menunggu lama.\nLangkahmu yang mendekat, Membuat aku tenang,\nSeolah kebahagiaan hanya untuk kita berdua saja.",
+      "Kita mulai menyusuri jalan yang panjang,  \nKakiku berusaha mengikuti langkah kakimu yang cepat.\nBukan hanya tidak ingin tertinggal,\nTapi bagiku, ini berarti aku ingin terus dekat denganmu.",
+      "Aku ingin mengatakan sesuatu,  \nBahwa setiap hari menjadi lebih manis karenamu.  \nNamun kata-kata terhenti di ujung bibir,  \nHanya mataku yang bicara lebih jelas.",
+      "Langit biru, udara hangat, dan burung bernyanyi riang.\nDan aku hanya ingin langkah ini tidak pernah usai.  \nBersamamu, segala sesuatu lebih hidup,  \nLebih indah, lebih berarti, lebih baik untuk kita."
     ],
-    songTitle: "Gymnopédie No.1",
-    songArtist: "Erik Satie",
-    youtubeUrl: "https://www.youtube.com/watch?v=S-Xm7s9eGxU"
+    songTitle: "",
+    songArtist: "",
+    youtubeUrl: ""
   },
   {
     id: 3,
-    title: "Surat Cinta Tak Terkirim",
-    author: "Anonim",
+    title: "Vincent Van Gogh",
+    author: "Roderikus",
     emoji: "💌",
-    date: "2026-03-08",
+    date: "2024-12-09",
     tags: [{ label: "Cinta", icon: "💕", type: "love" }, { label: "Mimpi", icon: "✨", type: "dream" }],
     excerpt: "Ada kata yang tak pernah terucap, tersimpan rapi di lembar hati...",
-    isPrivate: true,
-    password: "cinta123",
     stanzas: [
-      "Ada kata yang tak pernah terucap,\nTersimpan rapi di lembar hati,\nSeperti surat yang tak pernah sampai,\nTapi selalu ditulis setiap hari.",
-      "Jika angin bisa membawa pesan,\nAkan kukirimkan seribu rindu,\nAgar kau tahu di balik keheningan,\nAda cinta yang tumbuh untukmu."
+      "\"Tetapi, Kamu harus mencintai \ndengan simpati yang tinggi, serius, dan intim. \nDengan kemauan, dengan kecerdasan, \ndan kamu harus selalu berusaha mencari tahu, \nlebih baik, dan lebih banyak lagi\""
     ],
-    songTitle: "Nocturne Op.9 No.2",
-    songArtist: "Chopin",
-    youtubeUrl: "https://www.youtube.com/watch?v=9E6b3swbnWg"
+    songTitle: "Experience",
+    songArtist: "Ludovico Einaudi",
+    youtubeUrl: "https://www.youtube.com/watch?v=_VONMkKkdf4"
   },
   {
     id: 4,
-    title: "Untuk Shofia",
+    title: "Milik Shofia",
     author: "Roderikus",
     emoji: "🌧️",
     date: "2026-04-18",
     tags: [{ label: "Alam", icon: "🌿", type: "nature" }, { label: "Mimpi", icon: "✨", type: "dream" }],
     excerpt: "Rintik hujan mengetuk jendela, mengundang kenangan yang lama pergi...",
+    isPrivate: true,
+    password: "shofia",
     stanzas: [
       "Jika ada buku panduan percaya diri tetapi fiksi\nKalimat awal, bagaimana cara bertindak tanpa dipikir?",
       "Kuambil benih yang ada di hati kamu.\nKusimpan dalam lemari kosong.\nKutersirat bisa mengambil jika butuh.",
@@ -67,28 +70,30 @@ const defaultPoems = [
       "Rasa buahnya tidak bisa ditebak\nBisa manis, dan pahit.\nBiji buahnya mirip dengan bentuk mahkota.",
       "Benih yang dianggap aneh itu.\nBuahnya memiliki kemampuan.\nKemampuan untuk pengisi ruang gelap.\nPenyembuh dari luka yang sengaja ditutupi.\nKunamain obat itu \"Shofia\""
     ],
-    songTitle: "River Flows in You",
-    songArtist: "Yiruma",
-    youtubeUrl: "https://www.youtube.com/watch?v=7maJOI3QMu0"
+    songTitle: "It Will Rain",
+    songArtist: "Bruno Mars",
+    youtubeUrl: "https://music.youtube.com/watch?v=FRtXs73iICo"
   },
   {
     id: 5,
-    title: "Langkah Pertama",
-    author: "Anonim",
+    title: "Milik Sisi",
+    author: "Roderikus",
     emoji: "🦋",
-    date: "2026-05-01",
+    date: "2026-05-10",
     tags: [{ label: "Harapan", icon: "🌟", type: "hope" }, { label: "Cinta", icon: "💕", type: "love" }],
     excerpt: "Setiap langkah pertama adalah keberanian, setiap jatuh adalah pelajaran...",
     isPrivate: true,
-    password: "harapan456",
+    password: "sisi",
     stanzas: [
-      "Setiap langkah pertama adalah keberanian,\nSetiap jatuh adalah pelajaran berharga,\nSeperti kupu-kupu meninggalkan kepompong,\nKita terlahir kembali dalam keindahan.",
-      "Jangan takut pada jalan yang gelap,\nKarena bintang hanya terlihat di malam,\nDan bunga yang paling indah,\nTumbuh dari tanah yang pernah retak.",
-      "Langkahmu mungkin kecil dan pelan,\nTapi setiap satu langkah bermakna,\nKarena perjalanan seribu mil,\nDimulai dari satu tekad yang nyata."
+      "Priscilla, aku punya sajak indah yang dibuat untukmu. \nDitulis berdasarkan hasil kontemplasiku, \nSebagai penghilang atas cerita duka.",
+      "Jatuh cintalah. \nJatuh cinta tidak perlu dengan seseorang.\nJatuh cintalah dengan musik sampai kamu ingin menari.",
+      "jatuh cintalah dengan seni, \ndengan warna langit, gemerlap bintang, \naroma manis bunga.",
+      "Jatuh cintalah dengan teman\nyang bantu kamu ke versi terbaik dirimu sendiri. \nSampai adrenalin dan paru-parumu \npenuh dengan sesak kebahagiaan.",
+      "Kuharap kamu tidak takut mencintai.\nKarena penulis ini tidak pernah lelah berharap.\nAgar kamu selalu disertai kebahagiaan."
     ],
-    songTitle: "A Thousand Years",
-    songArtist: "Christina Perri",
-    youtubeUrl: "https://www.youtube.com/watch?v=rtOvBOTyX00"
+    songTitle: "",
+    songArtist: "",
+    youtubeUrl: ""
   }
 ];
 
@@ -105,8 +110,8 @@ const defaultSongs = [
 function getYouTubeId(url) {
   if (!url) return null;
   const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/,
-    /^([\w-]{11})$/
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\\w-]{11})/,
+    /^([\\w-]{11})$/
   ];
   for (const p of patterns) {
     const m = url.match(p);
@@ -144,7 +149,7 @@ const poems = getPoems();
 function formatDate(dateStr) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const d = new Date(dateStr);
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  return \`\${d.getDate()} \${months[d.getMonth()]} \${d.getFullYear()}\`;
 }
 
 function getPoemById(id) {
