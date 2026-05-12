@@ -280,33 +280,63 @@ function addStanzaField(value = '') {
       <div style="display:flex; align-items:center; gap: 12px; flex-wrap:wrap;">
         <span class="stanza-field-label">Bait ${container.querySelectorAll('.admin-stanza-field').length + 1}</span>
         <div class="stanza-toolbar">
-          <button type="button" class="toolbar-btn toolbar-bold" onclick="formatStanza('bold', this)" title="Bold"><b>B</b></button>
-          <button type="button" class="toolbar-btn toolbar-italic" onclick="formatStanza('italic', this)" title="Italic"><i>I</i></button>
+          <button type="button" class="toolbar-btn toolbar-bold" data-cmd="bold" onclick="formatStanza('bold', this)" title="Bold"><b>B</b></button>
+          <button type="button" class="toolbar-btn toolbar-italic" data-cmd="italic" onclick="formatStanza('italic', this)" title="Italic"><i>I</i></button>
           <div class="toolbar-divider"></div>
-          <button type="button" class="toolbar-btn" onclick="formatStanza('justifyLeft', this)" title="Rata Kiri">
+          <button type="button" class="toolbar-btn" data-cmd="justifyLeft" onclick="formatStanza('justifyLeft', this)" title="Rata Kiri">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2"/><rect x="0" y="4" width="10" height="2"/><rect x="0" y="8" width="14" height="2"/><rect x="0" y="12" width="8" height="2"/></svg>
           </button>
-          <button type="button" class="toolbar-btn" onclick="formatStanza('justifyCenter', this)" title="Rata Tengah">
+          <button type="button" class="toolbar-btn" data-cmd="justifyCenter" onclick="formatStanza('justifyCenter', this)" title="Rata Tengah">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2"/><rect x="2" y="4" width="10" height="2"/><rect x="0" y="8" width="14" height="2"/><rect x="3" y="12" width="8" height="2"/></svg>
           </button>
-          <button type="button" class="toolbar-btn" onclick="formatStanza('justifyRight', this)" title="Rata Kanan">
+          <button type="button" class="toolbar-btn" data-cmd="justifyRight" onclick="formatStanza('justifyRight', this)" title="Rata Kanan">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><rect x="0" y="0" width="14" height="2"/><rect x="4" y="4" width="10" height="2"/><rect x="0" y="8" width="14" height="2"/><rect x="6" y="12" width="8" height="2"/></svg>
           </button>
         </div>
       </div>
       <button class="admin-icon-btn delete-btn" onclick="removeStanza('stanza-field-${num}')" title="Hapus bait">✕</button>
     </div>
-    <div class="admin-textarea stanza-input" contenteditable="true" data-placeholder="Tulis bait puisi di sini...">${displayValue}</div>
+    <div class="admin-textarea stanza-input" contenteditable="true" data-placeholder="Tulis bait puisi di sini..." 
+         onmouseup="updateToolbarState(this)" onkeyup="updateToolbarState(this)" oninput="updateToolbarState(this)" onfocus="updateToolbarState(this)">${displayValue}</div>
   `;
   container.appendChild(div);
 }
 
+function updateToolbarState(editor) {
+  const toolbar = editor.closest('.admin-stanza-field').querySelector('.stanza-toolbar');
+  const btns = toolbar.querySelectorAll('.toolbar-btn');
+  
+  btns.forEach(btn => {
+    const cmd = btn.getAttribute('data-cmd');
+    if (!cmd) return;
+    
+    let isActive = false;
+    if (cmd.startsWith('justify')) {
+      // Alignment is special: queryCommandValue returns a boolean or string
+      isActive = document.queryCommandState(cmd);
+      // Fallback check if state isn't enough (some browsers are picky)
+      if (!isActive && cmd === 'justifyLeft') {
+         const center = document.queryCommandState('justifyCenter');
+         const right = document.queryCommandState('justifyRight');
+         if (!center && !right) isActive = true; // left is usually default
+      }
+    } else {
+      isActive = document.queryCommandState(cmd);
+    }
+    
+    btn.classList.toggle('active', isActive);
+  });
+}
+
+
 function formatStanza(command, btn) {
-  // Focus the sibling stanza-input then execute command
-  const editor = btn.closest('.admin-stanza-field').querySelector('.stanza-input');
+  const field = btn.closest('.admin-stanza-field');
+  const editor = field.querySelector('.stanza-input');
   editor.focus();
   document.execCommand(command, false, null);
+  updateToolbarState(editor);
 }
+
 
 function removeStanza(id) {
   const fields = document.querySelectorAll('.admin-stanza-field');
