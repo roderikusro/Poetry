@@ -11,9 +11,9 @@ const defaultPoems = [
     tags: [{ label: "Mimpi", icon: "✨", type: "dream" }, { label: "Alam", icon: "🌿", type: "nature" }],
     excerpt: "Di malam yang sunyi aku mendengar, bisikan angin yang lembut menyapa...",
     stanzas: [
-      "Di atas altar, di bawah basilika santo petrus, \ndi belakang tubuh kristus, di sampingku perempuan ini. \nMengenakan mantilla putih, gaun putih.\nKurasakan mantilla tidak bisa menutupi cantikmu, \ndan gaun panjang kalah elegan dengan kamu.",
-      "Ia lebih berharga daripada permata,\ntidak bohong didalam matanya bisa menangkap cahaya di sekitarnya. \nSatu tangannya saja tidak ingin kulepas, dan dua tangannya membuatku nyaman.",
-      "Berada di antara kita, menjadi saksi doa kita. \nKita bersama membuat pengakuan, satu hati, satu jiwa, satu raga.\nKita berjanji bersama dalam suka dan duka, sehat maupun sakit. \nDengan cincin melekat, kuminta dia menjadi milikku."
+      "Di atas altar, di bawah basilika santo petrus, <br>di belakang tubuh kristus, di sampingku perempuan ini. <br>Mengenakan mantilla putih, gaun putih.<br>Kurasakan mantilla tidak bisa menutupi cantikmu, <br>dan gaun panjang kalah elegan dengan kamu.",
+      "Ia lebih berharga daripada permata,<br>tidak bohong didalam matanya bisa menangkap cahaya di sekitarnya. <br>Satu tangannya saja tidak ingin kulepas, dan dua tangannya membuatku nyaman.",
+      "Berada di antara kita, menjadi saksi doa kita. <br>Kita bersama membuat pengakuan, satu hati, satu jiwa, satu raga.<br>Kita berjanji bersama dalam suka dan duka, sehat maupun sakit. <br>Dengan cincin melekat, kuminta dia menjadi milikku."
     ],
     songTitle: "",
     songArtist: "",
@@ -28,11 +28,11 @@ const defaultPoems = [
     tags: [{ label: "Alam", icon: "🌿", type: "nature" }, { label: "Harapan", icon: "🌟", type: "hope" }],
     excerpt: "Embun menetes di kelopak bunga, pagi menyapa dengan senyum hangat...",
     stanzas: [
-      "Aku berjalan di taman bunga,  \nUdara segar membelai rambutku.  \nDi kejauhan, kulihat kamu datang, \nDengan senyum yang menghilangkan kesunyian.",
-      "\"Kamu terlambat,\" kataku sambil menutupi senyum,  \nTapi sebenarnya, aku tidak menunggu lama.\nLangkahmu yang mendekat, Membuat aku tenang,\nSeolah kebahagiaan hanya untuk kita berdua saja.",
-      "Kita mulai menyusuri jalan yang panjang,  \nKakiku berusaha mengikuti langkah kakimu yang cepat.\nBukan hanya tidak ingin tertinggal,\nTapi bagiku, ini berarti aku ingin terus dekat denganmu.",
-      "Aku ingin mengatakan sesuatu,  \nBahwa setiap hari menjadi lebih manis karenamu.  \nNamun kata-kata terhenti di ujung bibir,  \nHanya mataku yang bicara lebih jelas.",
-      "Langit biru, udara hangat, dan burung bernyanyi riang.\nDan aku hanya ingin langkah ini tidak pernah usai.  \nBersamamu, segala sesuatu lebih hidup,  \nLebih indah, lebih berarti, lebih baik untuk kita."
+      "Aku berjalan di taman bunga,  <br>Udara segar membelai rambutku.  <br>Di kejauhan, kulihat kamu datang, <br>Dengan senyum yang menghilangkan kesunyian.",
+      "\"Kamu terlambat,\" kataku sambil menutupi senyum,  <br>Tapi sebenarnya, aku tidak menunggu lama.<br>Langkahmu yang mendekat, Membuat aku tenang,<br>Seolah kebahagiaan hanya untuk kita berdua saja.",
+      "Kita mulai menyusuri jalan yang panjang,  <br>Kakiku berusaha mengikuti langkah kakimu yang cepat.<br>Bukan hanya tidak ingin tertinggal,<br>Tapi bagiku, ini berarti aku ingin terus dekat denganmu.",
+      "Aku ingin mengatakan sesuatu,  <br>Bahwa setiap hari menjadi lebih manis karenamu.  <br>Namun kata-kata terhenti di ujung bibir,  <br>Hanya mataku yang bicara lebih jelas.",
+      "Langit biru, udara hangat, dan burung bernyanyi riang.<br>Dan aku hanya ingin langkah ini tidak pernah usai.  <br>Bersamamu, segala sesuatu lebih hidup,  <br>Lebih indah, lebih berarti, lebih baik untuk kita."
     ],
     songTitle: "",
     songArtist: "",
@@ -47,7 +47,7 @@ const defaultPoems = [
     tags: [{ label: "Cinta", icon: "💕", type: "love" }, { label: "Mimpi", icon: "✨", type: "dream" }],
     excerpt: "Ada kata yang tak pernah terucap, tersimpan rapi di lembar hati...",
     stanzas: [
-      "\"Tetapi, Kamu harus mencintai \ndengan simpati yang tinggi, serius, dan intim. \nDengan kemauan, dengan kecerdasan, \ndan kamu harus selalu berusaha mencari tahu, \nlebih baik, dan lebih banyak lagi\""
+      "<div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">\"Tetapi, Kamu harus mencintai </span></div><div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">dengan simpati yang tinggi, serius, dan intim. </span></div><div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">Dengan kemauan, dengan kecerdasan, </span></div><div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">dan kamu harus selalu berusaha mencari tahu, </span></div><div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">lebih baik, dan lebih banyak lagi\"</span></div>"
     ],
     songTitle: "Experience",
     songArtist: "Ludovico Einaudi",
@@ -64,11 +64,11 @@ const defaultPoems = [
     isPrivate: true,
     password: "shofia",
     stanzas: [
-      "Jika ada buku panduan percaya diri tetapi fiksi\nKalimat awal, bagaimana cara bertindak tanpa dipikir?",
-      "Kuambil benih yang ada di hati kamu.\nKusimpan dalam lemari kosong.\nKutersirat bisa mengambil jika butuh.",
-      "Namun, siapa menyangka seminggu kemudian.\nBenih itu tumbuh di lemari.\nBungannya pink memenuhi lemari.\nBuahnya biru, dengan banyak motif.",
-      "Rasa buahnya tidak bisa ditebak\nBisa manis, dan pahit.\nBiji buahnya mirip dengan bentuk mahkota.",
-      "Benih yang dianggap aneh itu.\nBuahnya memiliki kemampuan.\nKemampuan untuk pengisi ruang gelap.\nPenyembuh dari luka yang sengaja ditutupi.\nKunamain obat itu \"Shofia\""
+      "Jika ada buku panduan percaya diri tetapi fiksi<br>Kalimat awal, bagaimana cara bertindak tanpa dipikir?",
+      "Kuambil benih yang ada di hati kamu.<br>Kusimpan dalam lemari kosong.<br>Kutersirat bisa mengambil jika butuh.",
+      "Namun, siapa menyangka seminggu kemudian.<br>Benih itu tumbuh di lemari.<br>Bungannya pink memenuhi lemari.<br>Buahnya biru, dengan banyak motif.",
+      "Rasa buahnya tidak bisa ditebak<br>Bisa manis, dan pahit.<br>Biji buahnya mirip dengan bentuk mahkota.",
+      "Benih yang dianggap aneh itu.<br>Buahnya memiliki kemampuan.<br>Kemampuan untuk pengisi ruang gelap.<br>Penyembuh dari luka yang sengaja ditutupi.<br>Kunamain obat itu \"Shofia\""
     ],
     songTitle: "It Will Rain",
     songArtist: "Bruno Mars",
@@ -85,11 +85,11 @@ const defaultPoems = [
     isPrivate: true,
     password: "sisi",
     stanzas: [
-      "Priscilla, aku punya sajak indah yang dibuat untukmu. \nDitulis berdasarkan hasil kontemplasiku, \nSebagai penghilang atas cerita duka.",
-      "Jatuh cintalah. \nJatuh cinta tidak perlu dengan seseorang.\nJatuh cintalah dengan musik sampai kamu ingin menari.",
-      "jatuh cintalah dengan seni, \ndengan warna langit, gemerlap bintang, \naroma manis bunga.",
-      "Jatuh cintalah dengan teman\nyang bantu kamu ke versi terbaik dirimu sendiri. \nSampai adrenalin dan paru-parumu \npenuh dengan sesak kebahagiaan.",
-      "Kuharap kamu tidak takut mencintai.\nKarena penulis ini tidak pernah lelah berharap.\nAgar kamu selalu disertai kebahagiaan."
+      "Priscilla, aku punya sajak indah yang dibuat untukmu. <br>Ditulis berdasarkan hasil kontemplasiku, <br>Sebagai penghilang atas cerita duka.",
+      "Jatuh cintalah. <br>Jatuh cinta tidak perlu dengan seseorang.<br>Jatuh cintalah dengan musik sampai kamu ingin menari.",
+      "jatuh cintalah dengan seni, <br>dengan warna langit, gemerlap bintang, <br>aroma manis bunga.",
+      "<div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">Jatuh cintalah dengan teman</span></div>yang bantu kamu ke versi terbaik dirimu sendiri. <br>Sampai adrenalin dan paru-parumu <br>penuh dengan sesak kebahagiaan.",
+      "Kuharap kamu tidak takut mencintai.<br>Karena penulis ini tidak pernah lelah berharap.<br>Agar kamu selalu disertai kebahagiaan."
     ],
     songTitle: "",
     songArtist: "",
@@ -124,54 +124,13 @@ function getYouTubeId(url) {
 const ADMIN_PASSWORD = "admin2026";
 const STORAGE_KEY = "roderikus_poems";
 
-// ===== Data Version / Schema Migration =====
-// Normalizes any old export format → current format.
-// This ensures backward compatibility across all export versions.
-function normalizePoem(p) {
-  const out = Object.assign({}, p);
-
-  // --- v1 → v2: songIndex (number) → youtubeUrl/songTitle/songArtist ---
-  if (typeof out.songIndex === 'number' && !out.youtubeUrl) {
-    const song = defaultSongs[out.songIndex];
-    if (song) {
-      out.youtubeUrl  = song.youtubeUrl  || '';
-      out.songTitle   = song.title       || '';
-      out.songArtist  = song.artist      || '';
-    }
-    delete out.songIndex;
-  }
-
-  // --- Ensure required fields always exist ---
-  out.youtubeUrl  = out.youtubeUrl  ?? '';
-  out.songTitle   = out.songTitle   ?? '';
-  out.songArtist  = out.songArtist  ?? '';
-  out.excerpt     = out.excerpt     ?? '';
-  out.author      = out.author      ?? 'Anonim';
-  out.emoji       = out.emoji       ?? '🌸';
-  out.tags        = Array.isArray(out.tags) ? out.tags : [];
-  out.stanzas     = Array.isArray(out.stanzas) ? out.stanzas : [''];
-  out.isPrivate   = out.isPrivate   ?? false;
-
-  // Remove password field if poem is not private (clean export)
-  if (!out.isPrivate) delete out.password;
-
-  return out;
-}
-
-function normalizePoemArray(arr) {
-  return arr.map(normalizePoem);
-}
-
 // ===== Data Layer — merges defaults with localStorage =====
 function getPoems() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    try {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) return normalizePoemArray(parsed);
-    } catch (e) { /* fallback to defaults */ }
+    try { return JSON.parse(stored); } catch (e) { /* fallback */ }
   }
-  return normalizePoemArray([...defaultPoems]);
+  return [...defaultPoems];
 }
 
 function savePoems(poemArr) {
@@ -186,12 +145,11 @@ function getNextId() {
 // Live poems array (used by home.js, script.js)
 const poems = getPoems();
 
-
 // ===== Utility =====
 function formatDate(dateStr) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const d = new Date(dateStr);
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  return \`\${d.getDate()} \${months[d.getMonth()]} \${d.getFullYear()}\`;
 }
 
 function getPoemById(id) {
