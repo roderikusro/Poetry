@@ -52,48 +52,6 @@ const defaultPoems = [
     songTitle: "Experience",
     songArtist: "Ludovico Einaudi",
     youtubeUrl: "https://www.youtube.com/watch?v=_VONMkKkdf4"
-  },
-  {
-    id: 4,
-    title: "Milik Shofia",
-    author: "Roderikus",
-    emoji: "🌧️",
-    date: "2026-04-18",
-    tags: [{ label: "Alam", icon: "🌿", type: "nature" }, { label: "Mimpi", icon: "✨", type: "dream" }],
-    excerpt: "Rintik hujan mengetuk jendela, mengundang kenangan yang lama pergi...",
-    isPrivate: true,
-    password: "shofia",
-    stanzas: [
-      "Jika ada buku panduan percaya diri tetapi fiksi<br>Kalimat awal, bagaimana cara bertindak tanpa dipikir?",
-      "Kuambil benih yang ada di hati kamu.<br>Kusimpan dalam lemari kosong.<br>Kutersirat bisa mengambil jika butuh.",
-      "Namun, siapa menyangka seminggu kemudian.<br>Benih itu tumbuh di lemari.<br>Bungannya pink memenuhi lemari.<br>Buahnya biru, dengan banyak motif.",
-      "Rasa buahnya tidak bisa ditebak<br>Bisa manis, dan pahit.<br>Biji buahnya mirip dengan bentuk mahkota.",
-      "Benih yang dianggap aneh itu.<br>Buahnya memiliki kemampuan.<br>Kemampuan untuk pengisi ruang gelap.<br>Penyembuh dari luka yang sengaja ditutupi.<br>Kunamain obat itu \"Shofia\""
-    ],
-    songTitle: "It Will Rain",
-    songArtist: "Bruno Mars",
-    youtubeUrl: "https://music.youtube.com/watch?v=FRtXs73iICo"
-  },
-  {
-    id: 5,
-    title: "Milik Sisi",
-    author: "Roderikus",
-    emoji: "🦋",
-    date: "2026-05-10",
-    tags: [{ label: "Harapan", icon: "🌟", type: "hope" }, { label: "Cinta", icon: "💕", type: "love" }],
-    excerpt: "Setiap langkah pertama adalah keberanian, setiap jatuh adalah pelajaran...",
-    isPrivate: true,
-    password: "sisi",
-    stanzas: [
-      "Priscilla, aku punya sajak indah yang dibuat untukmu. <br>Ditulis berdasarkan hasil kontemplasiku, <br>Sebagai penghilang atas cerita duka.",
-      "Jatuh cintalah. <br>Jatuh cinta tidak perlu dengan seseorang.<br>Jatuh cintalah dengan musik sampai kamu ingin menari.",
-      "jatuh cintalah dengan seni, <br>dengan warna langit, gemerlap bintang, <br>aroma manis bunga.",
-      "<div style=\"text-align: left;\"><span style=\"font-size: 0.95rem;\">Jatuh cintalah dengan teman</span></div>yang bantu kamu ke versi terbaik dirimu sendiri. <br>Sampai adrenalin dan paru-parumu <br>penuh dengan sesak kebahagiaan.",
-      "Kuharap kamu tidak takut mencintai.<br>Karena penulis ini tidak pernah lelah berharap.<br>Agar kamu selalu disertai kebahagiaan."
-    ],
-    songTitle: "",
-    songArtist: "",
-    youtubeUrl: ""
   }
 ];
 
@@ -110,8 +68,8 @@ const defaultSongs = [
 function getYouTubeId(url) {
   if (!url) return null;
   const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\\w-]{11})/,
-    /^([\\w-]{11})$/
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/,
+    /^([\w-]{11})$/
   ];
   for (const p of patterns) {
     const m = url.match(p);
@@ -128,7 +86,10 @@ const STORAGE_KEY = "roderikus_poems";
 function getPoems() {
   const stored = localStorage.getItem(STORAGE_KEY);
   if (stored) {
-    try { return JSON.parse(stored); } catch (e) { /* fallback */ }
+    try { 
+      const data = JSON.parse(stored);
+      return Array.isArray(data) ? normalizePoemArray(data) : [...defaultPoems];
+    } catch (e) { return [...defaultPoems]; }
   }
   return [...defaultPoems];
 }
@@ -142,6 +103,22 @@ function getNextId() {
   return all.length > 0 ? Math.max(...all.map(p => p.id)) + 1 : 1;
 }
 
+// Migration layer: ensures old data formats are compatible with new features
+function normalizePoemArray(arr) {
+  return arr.map(p => normalizePoem(p));
+}
+
+function normalizePoem(p) {
+  const poem = { ...p };
+  // Ensure tags exist
+  if (!poem.tags) poem.tags = [];
+  // Ensure stanzas exist
+  if (!poem.stanzas) poem.stanzas = [];
+  // Future proofing: ensure every stanza is a string
+  poem.stanzas = poem.stanzas.map(s => typeof s === 'string' ? s : JSON.stringify(s));
+  return poem;
+}
+
 // Live poems array (used by home.js, script.js)
 const poems = getPoems();
 
@@ -149,7 +126,8 @@ const poems = getPoems();
 function formatDate(dateStr) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const d = new Date(dateStr);
-  return \`\${d.getDate()} \${months[d.getMonth()]} \${d.getFullYear()}\`;
+  if (isNaN(d.getTime())) return dateStr;
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function getPoemById(id) {

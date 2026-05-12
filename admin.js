@@ -547,20 +547,22 @@ function exportData() {
 function importData(event) {
   const file = event.target.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    try {
-      const raw = JSON.parse(e.target.result);
-      if (!Array.isArray(raw)) throw new Error('Format tidak valid');
-      // Migrate old formats → current schema
-      const data = normalizePoemArray(raw);
-      savePoems(data);
-      renderStats();
-      renderAdminPoemList();
-      alert('✅ Data berhasil diimpor! ' + data.length + ' puisi dimuat.');
 
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (Array.isArray(data)) {
+        const normalized = normalizePoemArray(data);
+        savePoems(normalized);
+        renderStats();
+        renderAdminPoemList();
+        showActionToast('✅ Data berhasil diimpor!');
+      } else {
+        showActionToast('❌ Format file tidak valid.');
+      }
     } catch (err) {
-      alert('❌ Gagal mengimpor data: ' + err.message);
+      showActionToast('❌ Gagal membaca file JSON.');
     }
   };
   reader.readAsText(file);
