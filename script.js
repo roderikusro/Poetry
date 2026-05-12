@@ -397,16 +397,24 @@ function buildPNGCard(innerHTML, width = 800) {
   card.style.cssText = [
     `position:fixed`, `top:-9999px`, `left:-9999px`,
     `width:${width}px`, `background:linear-gradient(135deg,#1a1528,#13101e)`,
-    `padding:48px 60px`, `box-sizing:border-box`,
-    `font-family:Georgia,"Times New Roman",serif`,
-    `color:#e0d8ec`, `border-radius:0`
+    `padding:60px 80px`, `box-sizing:border-box`,
+    `font-family:'Quicksand', Georgia, serif`,
+    `color:#e0d8ec`, `border:1px solid #2e2840`
   ].join(';');
   card.innerHTML = innerHTML;
   document.body.appendChild(card);
   return card;
 }
 
-// ===== Download Stanza as PNG (html2canvas — preserves formatting) =====
+// Helper to detect alignment from HTML
+function getHtmlAlignment(html) {
+  if (html.includes('text-align: center') || html.includes('align="center"')) return 'center';
+  if (html.includes('text-align: right') || html.includes('align="right"')) return 'right';
+  return 'left';
+}
+
+
+// ===== Download Stanza as PNG (Responsive & Alignment aware) =====
 function downloadStanzaPNG(idx) {
   if (typeof html2canvas === 'undefined') {
     showActionToast('⚠️ Modul gambar belum siap, coba lagi.');
@@ -415,30 +423,40 @@ function downloadStanzaPNG(idx) {
   const stanza = poem.stanzas[idx];
   const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
   const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
+  const align = getHtmlAlignment(content);
+
+  // Dynamic styles based on alignment
+  const borderStyle = align === 'left' ? 'border-left:4px solid #d4a574; padding-left:24px;' : '';
+  const quoteAlign = align === 'center' ? 'text-align:center' : (align === 'right' ? 'text-align:right' : 'text-align:left');
 
   const card = buildPNGCard(`
-    <div style="border-left:4px solid #d4a574;padding-left:20px;margin-bottom:24px;">
-      <div style="font-size:48px;opacity:.2;font-family:serif;line-height:1;margin-bottom:8px;">\u201C</div>
-      <div style="font-size:21px;line-height:1.9;color:#e0d8ec;">${content}</div>
-      <div style="font-size:42px;opacity:.2;font-family:serif;line-height:1;text-align:right;margin-top:4px;">\u201D</div>
+    <div style="margin-bottom:40px; ${borderStyle}">
+      <div style="${quoteAlign}; font-size:54px; opacity:.15; font-family:serif; line-height:0.5; margin-bottom:10px;">\u201C</div>
+      <div style="font-size:22px; line-height:1.9; color:#e0d8ec; font-family:inherit;">${content}</div>
+      <div style="text-align:${align === 'left' ? 'right' : (align === 'right' ? 'left' : 'center')}; font-size:54px; opacity:.15; font-family:serif; line-height:0.5; margin-top:10px;">\u201D</div>
     </div>
-    <div style="border-top:1px solid #3a3050;padding-top:16px;display:flex;justify-content:space-between;align-items:center;">
-      <span style="font-style:italic;font-size:13px;color:#9a8fb0;">&mdash; ${poem.author} &nbsp;\u00B7&nbsp; ${poem.title}</span>
-      <span style="font-size:11px;color:rgba(154,143,176,.4);">roderikusro.github.io/Poem</span>
+    <div style="border-top:1px solid rgba(139,126,200,0.2); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-style:italic; font-size:14px; color:#9a8fb0; opacity:0.8;">&mdash; ${poem.author} &nbsp;\u00B7&nbsp; ${poem.title}</span>
+      <span style="font-size:11px; color:rgba(154,143,176,0.3); letter-spacing:0.5px;">roderikusro.github.io/Poem</span>
     </div>
-  `);
+  `, 700); // Slightly narrower for better focus on mobile
 
-  html2canvas(card, { scale: 2, backgroundColor: null, logging: false }).then(canvas => {
+  html2canvas(card, { scale: 2, backgroundColor: null, logging: false, useCORS: true }).then(canvas => {
     card.remove();
     const link = document.createElement('a');
     link.download = `${poem.title.replace(/\s+/g,'_')}_bait_${idx+1}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     showActionToast('\uD83D\uDDBC\uFE0F Gambar berhasil diunduh!');
-  }).catch(() => { card.remove(); showActionToast('❌ Gagal mengunduh gambar.'); });
+  }).catch(err => { 
+    console.error(err);
+    card.remove(); 
+    showActionToast('❌ Gagal mengunduh gambar.'); 
+  });
 }
 
-// ===== Download Full Poem as PNG (html2canvas — preserves formatting) =====
+
+// ===== Download Full Poem as PNG (Responsive & Alignment aware) =====
 function downloadFullPoemPNG() {
   if (typeof html2canvas === 'undefined') {
     showActionToast('⚠️ Modul gambar belum siap, coba lagi.');
@@ -449,34 +467,41 @@ function downloadFullPoemPNG() {
     const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
     const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
     const divider = si < poem.stanzas.length - 1
-      ? '<div style="text-align:center;color:#6b9e8a;font-size:16px;margin:20px 0;">&#x2022;</div>'
+      ? '<div style="text-align:center; color:rgba(107,158,138,0.4); font-size:18px; margin:30px 0;">&#x273F;</div>'
       : '';
-    return `<div style="font-size:19px;line-height:2;color:#e0d8ec;">${content}</div>${divider}`;
+    return `<div style="font-size:20px; line-height:2; color:#e0d8ec; margin-bottom:10px;">${content}</div>${divider}`;
   }).join('');
 
   const card = buildPNGCard(`
-    <div style="text-align:center;margin-bottom:32px;">
-      <div style="font-size:44px;margin-bottom:10px;">${poem.emoji}</div>
-      <div style="font-size:28px;font-weight:bold;color:#d4a574;margin-bottom:6px;">${poem.title}</div>
-      <div style="font-style:italic;font-size:14px;color:#9a8fb0;">${poem.author} &nbsp;\u00B7&nbsp; ${formatDate(poem.date)}</div>
-      <div style="height:1px;background:linear-gradient(90deg,transparent,#3a3050,transparent);margin:20px auto;width:80%;"></div>
+    <div style="text-align:center; margin-bottom:48px;">
+      <div style="font-size:54px; margin-bottom:12px;">${poem.emoji}</div>
+      <div style="font-size:32px; font-weight:bold; color:#d4a574; margin-bottom:8px; letter-spacing:1px;">${poem.title}</div>
+      <div style="font-style:italic; font-size:15px; color:#9a8fb0; opacity:0.7;">${poem.author} &nbsp;\u00B7&nbsp; ${formatDate(poem.date)}</div>
+      <div style="height:1px; background:linear-gradient(90deg,transparent,rgba(139,126,200,0.3),transparent); margin:24px auto; width:70%;"></div>
     </div>
-    ${stanzasHTML}
-    <div style="border-top:1px solid #3a3050;padding-top:16px;margin-top:32px;display:flex;justify-content:space-between;">
-      <span style="font-style:italic;font-size:13px;color:#9a8fb0;">&mdash; ${poem.author} &nbsp;\u00B7&nbsp; ${poem.title}</span>
-      <span style="font-size:11px;color:rgba(154,143,176,.4);">roderikusro.github.io/Poem</span>
+    <div style="padding:0 20px;">
+      ${stanzasHTML}
     </div>
-  `);
+    <div style="border-top:1px solid rgba(139,126,200,0.2); padding-top:24px; margin-top:48px; display:flex; justify-content:space-between; align-items:center;">
+      <span style="font-style:italic; font-size:14px; color:#9a8fb0; opacity:0.8;">&mdash; ${poem.author} &nbsp;\u00B7&nbsp; ${poem.title}</span>
+      <span style="font-size:11px; color:rgba(154,143,176,0.3); letter-spacing:0.5px;">roderikusro.github.io/Poem</span>
+    </div>
+  `, 750);
 
-  html2canvas(card, { scale: 2, backgroundColor: null, logging: false }).then(canvas => {
+  html2canvas(card, { scale: 2, backgroundColor: null, logging: false, useCORS: true }).then(canvas => {
     card.remove();
     const link = document.createElement('a');
     link.download = `${poem.title.replace(/\s+/g,'_')}_full.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
     showActionToast('\uD83D\uDDBC\uFE0F Puisi lengkap berhasil diunduh!');
-  }).catch(() => { card.remove(); showActionToast('❌ Gagal mengunduh gambar.'); });
+  }).catch(err => {
+    console.error(err);
+    card.remove(); 
+    showActionToast('❌ Gagal mengunduh gambar.'); 
+  });
 }
+
 
 
 // ===== Action Toast =====
