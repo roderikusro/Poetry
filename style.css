@@ -1626,11 +1626,11 @@ body::after {
   gap: 0;
 }
 
-/* Stanza text: full width, centered */
+/* Stanza text: full width, respects internal alignment */
 .poem-stanza-wrapper>.poem-stanza {
   width: 100%;
-  text-align: center;
 }
+
 
 /* Buttons row — hidden via max-height so they occupy flow space when shown */
 .stanza-actions {
