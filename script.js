@@ -77,9 +77,11 @@ function renderPoem() {
       // Detect HTML stanza (from rich text editor) vs plain text
       const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
       const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
+      const alignStyle = isHTML ? '' : 'style="text-align: center;"';
       return `
         <div class="poem-stanza-wrapper">
-          <div class="poem-stanza" data-stanza-idx="${i}">${content}</div>
+          <div class="poem-stanza" data-stanza-idx="${i}" ${alignStyle}>${content}</div>
+
           <div class="stanza-actions">
             <button class="stanza-btn copy-btn" onclick="copyStanza(${i})" title="Salin kutipan">
               <span class="stanza-btn-icon">📋</span>
