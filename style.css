@@ -829,25 +829,26 @@ body::after {
   cursor: pointer;
   margin-top: 16px;
   margin-bottom: 12px;
-  margin-left: 20px; /* Indent to show hierarchy */
-  margin-right: auto;
+  margin-left: auto; /* Push to right */
+  margin-right: 20px; /* Indent from right edge */
   width: fit-content;
   max-width: 90%;
   padding: 12px 18px;
-  border-radius: 0 16px 16px 16px; /* Flat top-left corner */
+  border-radius: 16px 0 16px 16px; /* Flat top-right corner */
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-left: 3px solid rgba(139, 126, 200, 0.4);
+  border-right: 3px solid rgba(139, 126, 200, 0.4);
   font-size: 0.92rem;
   font-style: italic;
-  text-align: left;
+  text-align: right;
   color: rgba(255, 255, 255, 0.65);
   transform: scale(0.98);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 10px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
   position: relative;
@@ -857,7 +858,7 @@ body::after {
 .lyric-snippet::before {
   content: '';
   position: absolute;
-  left: -3px; /* Overlap the left border */
+  right: -3px; /* Overlap the right border */
   bottom: 100%; /* Point upwards */
   width: 3px;
   height: 24px; /* Reach up to the stanza */
@@ -868,14 +869,14 @@ body::after {
 
 .lyric-snippet:hover {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
-  border-left: 3px solid rgba(212, 107, 158, 0.6);
+  border-right: 3px solid rgba(212, 107, 158, 0.6);
 }
 
 .lyric-snippet.active {
   transform: scale(1.02);
   background: linear-gradient(135deg, rgba(139, 126, 200, 0.2), rgba(212, 107, 158, 0.08));
   border-color: rgba(255, 255, 255, 0.15);
-  border-left: 3px solid var(--pink);
+  border-right: 3px solid var(--pink);
   color: var(--text-accent);
   box-shadow: 0 10px 30px rgba(212, 107, 158, 0.25);
 }
