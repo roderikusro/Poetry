@@ -2777,14 +2777,20 @@ div.stanza-input[contenteditable="true"]:empty::before {
    ============================================= */
 @media (min-width: 1024px) {
   .poem-page {
-    max-width: 1000px;
+    max-width: 1300px;
+    overflow-x: hidden;
   }
   
   .poem-page-header,
   .poem-page-body,
   .poem-page-footer {
-    width: 62%;
-    margin-left: 0;
+    width: 100%;
+    max-width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    /* Perfectly centered on >1250px. Smoothly shifts left on smaller screens to fit lyrics */
+    transform: translateX(calc(min(0px, 50vw - 625px)));
+    transition: transform 0.3s ease;
   }
   
   .poem-page-body {
@@ -2797,10 +2803,10 @@ div.stanza-input[contenteditable="true"]:empty::before {
   
   .lyric-snippet {
     position: absolute;
-    left: calc(100% + 50px);
+    left: calc(100% + 40px);
     top: 50%;
     transform: translateY(-50%) scale(0.98);
-    width: 320px;
+    width: 260px;
     max-width: none;
     margin: 0;
     text-align: left;
@@ -2819,9 +2825,9 @@ div.stanza-input[contenteditable="true"]:empty::before {
   .lyric-snippet::before {
     content: '';
     position: absolute;
-    left: -53px;
+    left: -43px;
     top: 50%;
-    width: 50px;
+    width: 40px;
     height: 1px;
     background: linear-gradient(90deg, rgba(255,255,255,0), rgba(139, 126, 200, 0.4));
     z-index: -1;
