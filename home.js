@@ -85,48 +85,4 @@ function renderPoems() {
 // Initialize
 renderPoems();
 
-// ===== Luxurious Smokey Cursor Trail (Desktop Only) =====
-const cursorContainer = document.createElement('div');
-cursorContainer.id = 'cursor-trail-container';
-document.body.appendChild(cursorContainer);
 
-let lastParticleTime = 0;
-
-document.addEventListener('mousemove', (e) => {
-  if (window.innerWidth < 1024) return;
-  
-  const now = Date.now();
-  if (now - lastParticleTime < 20) return; // Throttle to maintain performance
-  lastParticleTime = now;
-  
-  const particle = document.createElement('div');
-  particle.className = 'smoke-particle';
-  
-  // Masculine but luxurious colors: Deep Violet, Dark Amber, Slate Blue, Deep Burgundy
-  const colors = [
-    'rgba(80, 60, 150, 0.5)',   // Deep Violet
-    'rgba(180, 110, 60, 0.4)',  // Dark Amber
-    'rgba(50, 100, 130, 0.5)',  // Slate Blue
-    'rgba(120, 40, 70, 0.4)'    // Deep Burgundy
-  ];
-  const color = colors[Math.floor(Math.random() * colors.length)];
-  
-  particle.style.background = color;
-  particle.style.left = `${e.clientX}px`;
-  particle.style.top = `${e.clientY}px`;
-  
-  // Random drift and size
-  const size = 30 + Math.random() * 40;
-  particle.style.width = `${size}px`;
-  particle.style.height = `${size}px`;
-  
-  const driftX = (Math.random() - 0.5) * 60; // Random horizontal drift
-  particle.style.setProperty('--drift-x', `${driftX}px`);
-  
-  cursorContainer.appendChild(particle);
-  
-  // Remove after animation (1.2s)
-  setTimeout(() => {
-    particle.remove();
-  }, 1200);
-});
