@@ -811,39 +811,42 @@ body::after {
   transform-origin: left center;
 }
 
-/* Spotify-like Lyrics Styling */
-.poem-lyric-mode .poem-stanza-wrapper {
+/* Spotify-like Lyric Snippet Styling */
+.lyric-snippet {
   cursor: pointer;
+  margin-top: 15px;
   padding: 10px 15px;
   border-radius: 12px;
-  transition: all 0.3s ease;
-}
-
-.poem-lyric-mode .poem-stanza {
-  opacity: 0.35;
-  filter: blur(0.5px);
+  font-size: 0.95rem;
+  font-style: italic;
+  text-align: center;
+  color: var(--text-secondary);
+  opacity: 0.4;
   transform: scale(0.98);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
-.poem-lyric-mode .poem-stanza-wrapper:hover {
+.lyric-snippet:hover {
   background: rgba(255, 255, 255, 0.05);
-}
-
-.poem-lyric-mode .poem-stanza-wrapper:hover .poem-stanza {
   opacity: 0.7;
-  filter: blur(0);
 }
 
-.poem-lyric-mode .poem-stanza-wrapper.active {
-  background: transparent;
-}
-
-.poem-lyric-mode .poem-stanza-wrapper.active .poem-stanza {
+.lyric-snippet.active {
   opacity: 1;
-  filter: blur(0);
   transform: scale(1.02);
   color: var(--text-accent);
+  background: transparent;
   text-shadow: 0 0 15px rgba(212, 165, 116, 0.3);
+}
+
+.lyric-icon {
+  font-style: normal;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 

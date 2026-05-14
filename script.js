@@ -79,7 +79,7 @@ function renderPoem() {
       const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
       const alignStyle = isHTML ? '' : 'style="text-align: center;"';
       return `
-        <div class="poem-stanza-wrapper" id="stanza-wrapper-${i}" onclick="syncStanza(${i})">
+        <div class="poem-stanza-wrapper" id="stanza-wrapper-${i}" onclick="toggleStanzaActions(${i})">
           <div class="poem-stanza" data-stanza-idx="${i}" ${alignStyle}>${content}</div>
 
           <div class="stanza-actions">
@@ -92,20 +92,16 @@ function renderPoem() {
               <span>Unduh PNG</span>
             </button>
           </div>
-        </div>`;
+        </div>
+        ${poem.lyrics && poem.lyrics[i] ? `
+        <div class="lyric-snippet" id="lyric-snippet-${i}" onclick="syncStanza(${i})">
+          <span class="lyric-icon">🎵</span> "${poem.lyrics[i]}"
+        </div>` : ''}`;
     }).join('<div class="stanza-divider"><span>✦</span></div>');
 
 
     const poemBody = document.getElementById('poemBody');
     poemBody.innerHTML = stanzasHTML;
-    
-    // Enable Lyric Mode if timestamps exist
-    const hasTimestamps = poem.timestamps && poem.timestamps.some(t => t > 0);
-    if (hasTimestamps) {
-      poemBody.classList.add('poem-lyric-mode');
-    } else {
-      poemBody.classList.remove('poem-lyric-mode');
-    }
   }
 
   // Footer
@@ -146,7 +142,7 @@ function tryUnlock() {
       const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
       const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
       return `
-        <div class="poem-stanza-wrapper" id="stanza-wrapper-${i}" onclick="syncStanza(${i})">
+        <div class="poem-stanza-wrapper" id="stanza-wrapper-${i}" onclick="toggleStanzaActions(${i})">
           <div class="poem-stanza" data-stanza-idx="${i}">${content}</div>
           <div class="stanza-actions">
             <button class="stanza-btn copy-btn btn-revealed" onclick="copyStanza(${i})" title="Salin kutipan">
@@ -158,7 +154,11 @@ function tryUnlock() {
               <span>Unduh PNG</span>
             </button>
           </div>
-        </div>`;
+        </div>
+        ${poem.lyrics && poem.lyrics[i] ? `
+        <div class="lyric-snippet" id="lyric-snippet-${i}" onclick="syncStanza(${i})">
+          <span class="lyric-icon">🎵</span> "${poem.lyrics[i]}"
+        </div>` : ''}`;
     }).join('<div class="stanza-divider">✿</div>');
 
     // Replace placeholders with real content
@@ -166,14 +166,6 @@ function tryUnlock() {
     body.innerHTML = stanzasHTML;
     body.classList.remove('poem-body-blurred', 'poem-locked-overlay');
     body.classList.add('unlocked');
-
-    // Enable Lyric Mode if timestamps exist
-    const hasTimestamps = poem.timestamps && poem.timestamps.some(t => t > 0);
-    if (hasTimestamps) {
-      body.classList.add('poem-lyric-mode');
-    } else {
-      body.classList.remove('poem-lyric-mode');
-    }
 
     // Reveal download full poem button
     const dlBtn = document.getElementById('downloadFullBtn');
@@ -386,7 +378,8 @@ function startProgressUpdate() {
             break;
           }
         }
-        document.querySelectorAll('.poem-stanza-wrapper').forEach((el, idx) => {
+        document.querySelectorAll('.lyric-snippet').forEach((el) => {
+          const idx = parseInt(el.id.split('-')[2]);
           if (idx === activeIdx) {
             el.classList.add('active');
           } else {
@@ -413,30 +406,25 @@ progressBar.addEventListener('click', e => {
   ytPlayer.seekTo(seekTo, true);
 });
 
-// ===== Sync Stanza Click =====
-function syncStanza(idx) {
-  const hasTimestamps = poem.timestamps && poem.timestamps.some(t => t > 0);
-  
-  if (!hasTimestamps) {
-    // Mobile tap-to-reveal for normal poems
-    const wrapper = document.getElementById(`stanza-wrapper-${idx}`);
-    if (wrapper) {
-      const isCurrentlyActive = wrapper.classList.contains('active');
-      // Remove active from all
-      document.querySelectorAll('.poem-stanza-wrapper').forEach(el => el.classList.remove('active'));
-      // Toggle on the clicked one
-      if (!isCurrentlyActive) {
-        wrapper.classList.add('active');
-      }
+// ===== Mobile Tap to Reveal =====
+function toggleStanzaActions(idx) {
+  const wrapper = document.getElementById(`stanza-wrapper-${idx}`);
+  if (wrapper) {
+    const isCurrentlyActive = wrapper.classList.contains('active');
+    document.querySelectorAll('.poem-stanza-wrapper').forEach(el => el.classList.remove('active'));
+    if (!isCurrentlyActive) {
+      wrapper.classList.add('active');
     }
-    return;
   }
+}
+
+// ===== Sync Lyric Click =====
+function syncStanza(idx) {
+  if (!poem.timestamps || poem.timestamps.length === 0 || !ytPlayer || !ytPlayer.seekTo) return;
   
-  if (!ytPlayer || !ytPlayer.seekTo) return;
   const targetTime = poem.timestamps[idx] || 0;
   ytPlayer.seekTo(targetTime, true);
   
-  // Ensure playing
   if (!isPlaying) {
     ytPlayer.playVideo();
   }

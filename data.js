@@ -181,6 +181,7 @@ function normalizePoem(p) {
   const poem = { ...p };
   if (!poem.tags) poem.tags = [];
   if (!poem.stanzas) poem.stanzas = [];
+  if (!poem.lyrics) poem.lyrics = [];
   if (!poem.timestamps) poem.timestamps = [];
   poem.stanzas = poem.stanzas.map(s => typeof s === 'string' ? s : JSON.stringify(s));
   return poem;
