@@ -1,4 +1,5 @@
 // ===== Shared Poem & Song Data =====
+// Generated: 14/05/2026, 08.28.26
 
 // Default poems (shipped with the site)
 const defaultPoems = [
@@ -11,9 +12,9 @@ const defaultPoems = [
     tags: [{ label: "Mimpi", icon: "✨", type: "dream" }, { label: "Alam", icon: "🌿", type: "nature" }],
     excerpt: "Di malam yang sunyi aku mendengar, bisikan angin yang lembut menyapa...",
     stanzas: [
-      "Di atas altar, di bawah basilika santo petrus, <br>di belakang tubuh kristus, di sampingku perempuan ini. <br>Mengenakan mantilla putih, gaun putih.<br>Kurasakan mantilla tidak bisa menutupi cantikmu, <br>dan gaun panjang kalah elegan dengan kamu.",
-      "Ia lebih berharga daripada permata,<br>tidak bohong didalam matanya bisa menangkap cahaya di sekitarnya. <br>Satu tangannya saja tidak ingin kulepas, dan dua tangannya membuatku nyaman.",
-      "Berada di antara kita, menjadi saksi doa kita. <br>Kita bersama membuat pengakuan, satu hati, satu jiwa, satu raga.<br>Kita berjanji bersama dalam suka dan duka, sehat maupun sakit. <br>Dengan cincin melekat, kuminta dia menjadi milikku."
+      "Di atas altar, di bawah basilika santo petrus, \ndi belakang tubuh kristus, di sampingku perempuan ini. \nMengenakan mantilla putih, gaun putih.\nKurasakan mantilla tidak bisa menutupi cantikmu, \ndan gaun panjang kalah elegan dengan kamu.",
+      "Ia lebih berharga daripada permata,\ntidak bohong didalam matanya bisa menangkap cahaya di sekitarnya. \nSatu tangannya saja tidak ingin kulepas, dan dua tangannya membuatku nyaman.",
+      "Berada di antara kita, menjadi saksi doa kita. \nKita bersama membuat pengakuan, satu hati, satu jiwa, satu raga.\nKita berjanji bersama dalam suka dan duka, sehat maupun sakit. \nDengan cincin melekat, kuminta dia menjadi milikku."
     ],
     songTitle: "",
     songArtist: "",
@@ -28,25 +29,108 @@ const defaultPoems = [
     tags: [{ label: "Alam", icon: "🌿", type: "nature" }, { label: "Harapan", icon: "🌟", type: "hope" }],
     excerpt: "Embun menetes di kelopak bunga, pagi menyapa dengan senyum hangat...",
     stanzas: [
-      "Aku berjalan di taman bunga,  <br>Udara segar membelai rambutku.  <br>Di kejauhan, kulihat kamu datang, <br>Dengan senyum yang menghilangkan kesunyian.",
-      "\"Kamu terlambat,\" kataku sambil menutupi senyum,  <br>Tapi sebenarnya, aku tidak menunggu lama.<br>Langkahmu yang mendekat, Membuat aku tenang,<br>Seolah kebahagiaan hanya untuk kita berdua saja.",
-      "Kita mulai menyusuri jalan yang panjang,  <br>Kakiku berusaha mengikuti langkah kakimu yang cepat.<br>Bukan hanya tidak ingin tertinggal,<br>Tapi bagiku, ini berarti aku ingin terus dekat denganmu.",
-      "Aku ingin mengatakan sesuatu,  <br>Bahwa setiap hari menjadi lebih manis karenamu.  <br>Namun kata-kata terhenti di ujung bibir,  <br>Hanya mataku yang bicara lebih jelas.",
-      "Langit biru, udara hangat, dan burung bernyanyi riang.<br>And aku hanya ingin langkah ini tidak pernah usai.  <br>Bersamamu, segala sesuatu lebih hidup,  <br>Lebih indah, lebih berarti, lebih baik untuk kita."
+      "Aku berjalan di taman bunga,  \nUdara segar membelai rambutku.  \nDi kejauhan, kulihat kamu datang, \nDengan senyum yang menghilangkan kesunyian.",
+      "\"Kamu terlambat,\" kataku sambil menutupi senyum,  \nTapi sebenarnya, aku tidak menunggu lama.\nLangkahmu yang mendekat, Membuat aku tenang,\nSeolah kebahagiaan hanya untuk kita berdua saja.",
+      "Kita mulai menyusuri jalan yang panjang,  \nKakiku berusaha mengikuti langkah kakimu yang cepat.\nBukan hanya tidak ingin tertinggal,\nTapi bagiku, ini berarti aku ingin terus dekat denganmu.",
+      "Aku ingin mengatakan sesuatu,  \nBahwa setiap hari menjadi lebih manis karenamu.  \nNamun kata-kata terhenti di ujung bibir,  \nHanya mataku yang bicara lebih jelas.",
+      "Langit biru, udara hangat, dan burung bernyanyi riang.\nDan aku hanya ingin langkah ini tidak pernah usai.  \nBersamamu, segala sesuatu lebih hidup,  \nLebih indah, lebih berarti, lebih baik untuk kita."
     ],
     songTitle: "",
     songArtist: "",
     youtubeUrl: ""
+  },
+  {
+    id: 3,
+    title: "Vincent Van Gogh",
+    author: "Roderikus",
+    emoji: "💌",
+    date: "2024-12-09",
+    tags: [{ label: "Cinta", icon: "💕", type: "love" }, { label: "Mimpi", icon: "✨", type: "dream" }],
+    excerpt: "Ada kata yang tak pernah terucap, tersimpan rapi di lembar hati...",
+    stanzas: [
+      "\"Tetapi, Kamu harus mencintai \ndengan simpati yang tinggi, serius, dan intim. \nDengan kemauan, dengan kecerdasan, \ndan kamu harus selalu berusaha mencari tahu, \nlebih baik, dan lebih banyak lagi\""
+    ],
+    songTitle: "Experience",
+    songArtist: "Ludovico Einaudi",
+    youtubeUrl: "https://www.youtube.com/watch?v=_VONMkKkdf4"
+  },
+  {
+    id: 4,
+    title: "Milik Shofia",
+    author: "Roderikus",
+    emoji: "🌧️",
+    date: "2026-04-18",
+    tags: [{ label: "Alam", icon: "🌿", type: "nature" }, { label: "Mimpi", icon: "✨", type: "dream" }],
+    excerpt: "Rintik hujan mengetuk jendela, mengundang kenangan yang lama pergi...",
+    isPrivate: true,
+    password: "shofia",
+    stanzas: [
+      "Jika ada buku panduan percaya diri tetapi fiksi\nKalimat awal, bagaimana cara bertindak tanpa dipikir?",
+      "Kuambil benih yang ada di hati kamu.\nKusimpan dalam lemari kosong.\nKutersirat bisa mengambil jika butuh.",
+      "Namun, siapa menyangka seminggu kemudian.\nBenih itu tumbuh di lemari.\nBungannya pink memenuhi lemari.\nBuahnya biru, dengan banyak motif.",
+      "Rasa buahnya tidak bisa ditebak\nBisa manis, dan pahit.\nBiji buahnya mirip dengan bentuk mahkota.",
+      "Benih yang dianggap aneh itu.\nBuahnya memiliki kemampuan.\nKemampuan untuk pengisi ruang gelap.\nPenyembuh dari luka yang sengaja ditutupi.\nKunamain obat itu \"Shofia\""
+    ],
+    songTitle: "It Will Rain",
+    songArtist: "Bruno Mars",
+    youtubeUrl: "https://music.youtube.com/watch?v=FRtXs73iICo"
+  },
+  {
+    id: 5,
+    title: "Milik Sisi",
+    author: "Roderikus",
+    emoji: "🦋",
+    date: "2026-05-10",
+    tags: [{ label: "Harapan", icon: "🌟", type: "hope" }, { label: "Cinta", icon: "💕", type: "love" }],
+    excerpt: "Setiap langkah pertama adalah keberanian, setiap jatuh adalah pelajaran...",
+    isPrivate: true,
+    password: "sisi",
+    stanzas: [
+      "Priscilla, aku punya sajak indah yang dibuat untukmu. <br>Ditulis berdasarkan hasil kontemplasiku, <br>Sebagai penghilang atas cerita duka.",
+      "<b>Jatuh cintalah. </b><br>Jatuh cinta tidak perlu dengan seseorang.<br>Jatuh cintalah dengan musik sampai kamu ingin menari.",
+      "<b>jatuh cintalah</b> dengan seni, <br>dengan warna langit, gemerlap bintang, <br>aroma manis bunga.",
+      "<b>Jatuh cintalah</b> dengan teman<br>yang bantu kamu ke versi terbaik dirimu sendiri. <br>Sampai adrenalin dan paru-parumu <br>penuh dengan sesak kebahagiaan.",
+      "Kuharap kamu tidak takut mencintai.<br>Karena penulis ini tidak pernah lelah berharap.<br>Agar kamu selalu disertai kebahagiaan."
+    ],
+    timestamps: [185, 185, 185, 185, 185],
+    songTitle: "",
+    songArtist: "",
+    youtubeUrl: "https://music.youtube.com/watch?v=TIrqlXANqZw"
   }
 ];
 
 // ===== Default Background Songs (YouTube) =====
 const defaultSongs = [
-  { title: "Clair de Lune", artist: "Debussy", icon: "🌙", youtubeUrl: "https://www.youtube.com/watch?v=CvFH_6DNRCY" },
-  { title: "River Flows in You", artist: "Yiruma", icon: "🌊", youtubeUrl: "https://www.youtube.com/watch?v=7maJOI3QMu0" },
-  { title: "Gymnopédie No.1", artist: "Erik Satie", icon: "☁️", youtubeUrl: "https://www.youtube.com/watch?v=S-Xm7s9eGxU" },
-  { title: "Nocturne Op.9 No.2", artist: "Chopin", icon: "🌌", youtubeUrl: "https://www.youtube.com/watch?v=9E6b3swbnWg" },
-  { title: "Experience", artist: "Ludovico Einaudi", icon: "✨", youtubeUrl: "https://www.youtube.com/watch?v=_VONMkKkdf4" }
+  {
+    "title": "Clair de Lune",
+    "artist": "Debussy",
+    "icon": "🌙",
+    "youtubeUrl": "https://www.youtube.com/watch?v=CvFH_6DNRCY"
+  },
+  {
+    "title": "River Flows in You",
+    "artist": "Yiruma",
+    "icon": "🌊",
+    "youtubeUrl": "https://www.youtube.com/watch?v=7maJOI3QMu0"
+  },
+  {
+    "title": "Gymnopédie No.1",
+    "artist": "Erik Satie",
+    "icon": "☁️",
+    "youtubeUrl": "https://www.youtube.com/watch?v=S-Xm7s9eGxU"
+  },
+  {
+    "title": "Nocturne Op.9 No.2",
+    "artist": "Chopin",
+    "icon": "🌌",
+    "youtubeUrl": "https://www.youtube.com/watch?v=9E6b3swbnWg"
+  },
+  {
+    "title": "Experience",
+    "artist": "Ludovico Einaudi",
+    "icon": "✨",
+    "youtubeUrl": "https://www.youtube.com/watch?v=_VONMkKkdf4"
+  }
 ];
 
 // Extract YouTube video ID from various URL formats
@@ -97,7 +181,6 @@ function normalizePoem(p) {
   const poem = { ...p };
   if (!poem.tags) poem.tags = [];
   if (!poem.stanzas) poem.stanzas = [];
-  if (!poem.timestamps) poem.timestamps = [];
   poem.stanzas = poem.stanzas.map(s => typeof s === 'string' ? s : JSON.stringify(s));
   return poem;
 }
@@ -110,7 +193,7 @@ function formatDate(dateStr) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
   const d = new Date(dateStr);
   if (isNaN(d.getTime())) return dateStr;
-  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+  return d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
 }
 
 function getPoemById(id) {
