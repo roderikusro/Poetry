@@ -84,3 +84,30 @@ function renderPoems() {
 
 // Initialize
 renderPoems();
+
+// ===== Interactive Cursor & Spotlight Effects (Desktop Only) =====
+const cursorGlow = document.getElementById('cursorGlow');
+
+document.addEventListener('mousemove', (e) => {
+  // Only apply on larger screens for performance and UX
+  if (window.innerWidth < 1024) return;
+  
+  // 1. Move Global Ambient Cursor
+  if (cursorGlow) {
+    cursorGlow.style.opacity = '1';
+    // Translate directly via 3d transform for smoothness
+    cursorGlow.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
+  }
+  
+  // 2. Update Spotlight Variables for Poem Cards
+  const cards = document.querySelectorAll('.poem-grid-card, .poem-list-card');
+  for (const card of cards) {
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Inject coordinates as CSS variables
+    card.style.setProperty('--mouse-x', `${x}px`);
+    card.style.setProperty('--mouse-y', `${y}px`);
+  }
+});

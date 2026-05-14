@@ -397,6 +397,31 @@ body::after {
   animation: fadeInUp 0.5s ease-out both;
 }
 
+/* Interactive Spotlight Effect for List Card */
+.poem-list-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+    rgba(212, 107, 158, 0.05),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.poem-list-card:hover::before {
+  opacity: 1;
+}
+
+.poem-list-card > * {
+  position: relative;
+  z-index: 1;
+}
+
 .poem-list-card-accent {
   position: absolute;
   top: 0;
@@ -528,6 +553,31 @@ body::after {
   position: relative;
   overflow: hidden;
   animation: fadeInUp 0.4s ease-out both;
+}
+
+/* Interactive Spotlight Effect for Grid Card */
+.poem-grid-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(
+    600px circle at var(--mouse-x, -1000px) var(--mouse-y, -1000px),
+    rgba(212, 107, 158, 0.06),
+    transparent 40%
+  );
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.poem-grid-card:hover::before {
+  opacity: 1;
+}
+
+.poem-grid-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .poem-grid-card-accent {
@@ -2873,5 +2923,28 @@ div.stanza-input[contenteditable="true"]:empty::before {
     background: linear-gradient(90deg, rgba(255,255,255,0), var(--pink));
     height: 2px;
     box-shadow: 0 0 10px rgba(212, 107, 158, 0.4);
+  }
+}
+/* =============================================
+   INTERACTIVE CURSOR GLOW (DESKTOP)
+   ============================================= */
+.cursor-glow {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(212, 107, 158, 0.05) 0%, rgba(139, 126, 200, 0.03) 40%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  will-change: transform;
+}
+
+@media (max-width: 1023px) {
+  .cursor-glow {
+    display: none !important;
   }
 }
