@@ -250,11 +250,13 @@ function togglePreview() {
     height: '180',
     width: '100%',
     videoId: videoId,
+    host: 'https://www.youtube-nocookie.com',
     playerVars: {
       autoplay: 1,
       controls: 1,
       modestbranding: 1,
-      rel: 0
+      rel: 0,
+      origin: window.location.origin
     }
   });
 }
