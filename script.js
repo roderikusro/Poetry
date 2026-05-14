@@ -487,8 +487,11 @@ function downloadStanzaPNG(idx) {
   const quoteAlign = align === 'center' ? 'text-align:center' : (align === 'right' ? 'text-align:right' : 'text-align:left');
 
   const lyricHTML = poem.lyrics && poem.lyrics[idx] ? `
-    <div style="margin-top:16px; margin-bottom:20px; font-style:italic; font-size:16px; color:#9a8fb0; text-align:right;">
-      <span style="opacity:0.6;">🎵</span> "${poem.lyrics[idx]}"
+    <div style="position:relative; margin-top:32px; margin-bottom:20px; text-align:right;">
+      <div style="position:absolute; right:-3px; bottom:100%; width:3px; height:24px; background:linear-gradient(0deg, rgba(139,126,200,0.4), transparent);"></div>
+      <div style="display:inline-flex; align-items:center; gap:10px; padding:14px 20px; border-radius:16px 0 16px 16px; background:linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.08); border-right:3px solid rgba(139,126,200,0.5); font-size:16px; font-style:italic; color:rgba(255,255,255,0.8); max-width:85%; box-shadow:0 8px 24px rgba(0,0,0,0.2);">
+        <span style="opacity:0.8; font-style:normal;">🎵</span> "${poem.lyrics[idx]}"
+      </div>
     </div>
   ` : '<div style="margin-top:30px;"></div>';
 
@@ -534,8 +537,11 @@ function downloadFullPoemPNG() {
       ? '<div style="text-align:center; color:rgba(107,158,138,0.4); font-size:18px; margin:30px 0;">&#x273F;</div>'
       : '';
     const lyricHTML = poem.lyrics && poem.lyrics[si] ? `
-      <div style="margin-top:16px; margin-bottom: 30px; font-style:italic; font-size:16px; color:#9a8fb0; text-align:right; opacity:0.8;">
-        <span style="opacity:0.6;">🎵</span> "${poem.lyrics[si]}"
+      <div style="position:relative; margin-top:24px; margin-bottom:40px; text-align:right;">
+        <div style="position:absolute; right:-3px; bottom:100%; width:3px; height:24px; background:linear-gradient(0deg, rgba(139,126,200,0.4), transparent);"></div>
+        <div style="display:inline-flex; align-items:center; gap:10px; padding:12px 18px; border-radius:16px 0 16px 16px; background:linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.08); border-right:3px solid rgba(139,126,200,0.5); font-size:15px; font-style:italic; color:rgba(255,255,255,0.75); max-width:85%; box-shadow:0 8px 20px rgba(0,0,0,0.2);">
+          <span style="opacity:0.8; font-style:normal;">🎵</span> "${poem.lyrics[si]}"
+        </div>
       </div>
     ` : '';
     const bottomMargin = lyricHTML ? '0' : '20px';
