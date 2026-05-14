@@ -4,18 +4,33 @@
 function adminLogin() {
   const pw = document.getElementById('adminPassword').value.trim();
   const errEl = document.getElementById('loginError');
+  
+  if (typeof ADMIN_PASSWORD === 'undefined') {
+    errEl.textContent = '⚠️ Error: Konfigurasi password tidak ditemukan.';
+    return;
+  }
+
   if (pw === ADMIN_PASSWORD) {
     sessionStorage.setItem('admin_auth', 'true');
     document.getElementById('loginScreen').style.display = 'none';
     document.getElementById('adminDashboard').style.display = 'block';
-    initDashboard();
+    
+    // Ensure dashboard is fully initialized
+    try {
+      initDashboard();
+      showActionToast('🔓 Selamat datang, Admin!');
+    } catch (e) {
+      console.error('Dashboard init error:', e);
+      showActionToast('⚠️ Login berhasil, tapi ada masalah saat memuat dashboard.');
+    }
   } else {
-    errEl.textContent = '❌ Password salah!';
+    errEl.textContent = '❌ Password salah! Silakan cek kembali.';
     document.getElementById('adminPassword').value = '';
     document.getElementById('adminPassword').focus();
-    setTimeout(() => errEl.textContent = '', 2500);
+    setTimeout(() => errEl.textContent = '', 3000);
   }
 }
+
 
 function adminLogout() {
   sessionStorage.removeItem('admin_auth');
