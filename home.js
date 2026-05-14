@@ -85,4 +85,21 @@ function renderPoems() {
 // Initialize
 renderPoems();
 
+// ===== Dynamic Version Display =====
+document.addEventListener('DOMContentLoaded', () => {
+  const scripts = document.getElementsByTagName('script');
+  let currentVersion = 'v1.0.0';
+  for (let script of scripts) {
+    if (script.src.includes('home.js?v=')) {
+      currentVersion = 'v' + script.src.split('?v=')[1];
+      break;
+    }
+  }
+  
+  const versionEl = document.getElementById('app-version');
+  if (versionEl) {
+    versionEl.textContent = currentVersion;
+  }
+});
+
 
