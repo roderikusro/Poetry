@@ -79,7 +79,7 @@ function renderPoem() {
       const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
       const alignStyle = isHTML ? '' : 'style="text-align: center;"';
       return `
-        <div class="poem-stanza-wrapper">
+        <div class="poem-stanza-wrapper" id="stanza-wrapper-${i}" onclick="syncStanza(${i})">
           <div class="poem-stanza" data-stanza-idx="${i}" ${alignStyle}>${content}</div>
 
           <div class="stanza-actions">
@@ -96,7 +96,16 @@ function renderPoem() {
     }).join('<div class="stanza-divider"><span>✦</span></div>');
 
 
-    document.getElementById('poemBody').innerHTML = stanzasHTML;
+    const poemBody = document.getElementById('poemBody');
+    poemBody.innerHTML = stanzasHTML;
+    
+    // Enable Lyric Mode if timestamps exist
+    const hasTimestamps = poem.timestamps && poem.timestamps.some(t => t > 0);
+    if (hasTimestamps) {
+      poemBody.classList.add('poem-lyric-mode');
+    } else {
+      poemBody.classList.remove('poem-lyric-mode');
+    }
   }
 
   // Footer
@@ -137,7 +146,7 @@ function tryUnlock() {
       const isHTML = /<[a-z][\s\S]*>/i.test(stanza);
       const content = isHTML ? stanza : stanza.replace(/\n/g, '<br>');
       return `
-        <div class="poem-stanza-wrapper">
+        <div class="poem-stanza-wrapper" id="stanza-wrapper-${i}" onclick="syncStanza(${i})">
           <div class="poem-stanza" data-stanza-idx="${i}">${content}</div>
           <div class="stanza-actions">
             <button class="stanza-btn copy-btn btn-revealed" onclick="copyStanza(${i})" title="Salin kutipan">
@@ -157,6 +166,14 @@ function tryUnlock() {
     body.innerHTML = stanzasHTML;
     body.classList.remove('poem-body-blurred', 'poem-locked-overlay');
     body.classList.add('unlocked');
+
+    // Enable Lyric Mode if timestamps exist
+    const hasTimestamps = poem.timestamps && poem.timestamps.some(t => t > 0);
+    if (hasTimestamps) {
+      body.classList.add('poem-lyric-mode');
+    } else {
+      body.classList.remove('poem-lyric-mode');
+    }
 
     // Reveal download full poem button
     const dlBtn = document.getElementById('downloadFullBtn');
@@ -359,6 +376,24 @@ function startProgressUpdate() {
       progressFill.style.width = (current / total * 100) + '%';
       currentTimeEl.textContent = fmtTime(current);
       totalTimeEl.textContent = fmtTime(total);
+      
+      // Lyric Sync Highlight
+      if (poem && poem.timestamps && poem.timestamps.length > 0) {
+        let activeIdx = -1;
+        for (let i = poem.timestamps.length - 1; i >= 0; i--) {
+          if (current >= poem.timestamps[i] - 0.5) { // 0.5s offset for smoother transition
+            activeIdx = i;
+            break;
+          }
+        }
+        document.querySelectorAll('.poem-stanza-wrapper').forEach((el, idx) => {
+          if (idx === activeIdx) {
+            el.classList.add('active');
+          } else {
+            el.classList.remove('active');
+          }
+        });
+      }
     }
   }, 500);
 }
@@ -377,6 +412,21 @@ progressBar.addEventListener('click', e => {
   const seekTo = pct * ytPlayer.getDuration();
   ytPlayer.seekTo(seekTo, true);
 });
+
+// ===== Sync Stanza Click =====
+function syncStanza(idx) {
+  // Check if we are in lyric mode
+  const hasTimestamps = poem.timestamps && poem.timestamps.some(t => t > 0);
+  if (!hasTimestamps || !ytPlayer || !ytPlayer.seekTo) return;
+  
+  const targetTime = poem.timestamps[idx] || 0;
+  ytPlayer.seekTo(targetTime, true);
+  
+  // Ensure playing
+  if (!isPlaying) {
+    ytPlayer.playVideo();
+  }
+}
 
 // ===== Copy Stanza =====
 function copyStanza(idx) {

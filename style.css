@@ -807,6 +807,43 @@ body::after {
   line-height: 2;
   color: var(--text-primary);
   animation: fadeInUp 0.5s ease-out both;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left center;
+}
+
+/* Spotify-like Lyrics Styling */
+.poem-lyric-mode .poem-stanza-wrapper {
+  cursor: pointer;
+  padding: 10px 15px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.poem-lyric-mode .poem-stanza {
+  opacity: 0.35;
+  filter: blur(0.5px);
+  transform: scale(0.98);
+}
+
+.poem-lyric-mode .poem-stanza-wrapper:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.poem-lyric-mode .poem-stanza-wrapper:hover .poem-stanza {
+  opacity: 0.7;
+  filter: blur(0);
+}
+
+.poem-lyric-mode .poem-stanza-wrapper.active {
+  background: transparent;
+}
+
+.poem-lyric-mode .poem-stanza-wrapper.active .poem-stanza {
+  opacity: 1;
+  filter: blur(0);
+  transform: scale(1.02);
+  color: var(--text-accent);
+  text-shadow: 0 0 15px rgba(212, 165, 116, 0.3);
 }
 
 
