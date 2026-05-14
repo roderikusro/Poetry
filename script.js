@@ -379,7 +379,7 @@ function startProgressUpdate() {
       
       // Lyric Sync Highlight
       if (poem && poem.timestamps && poem.timestamps.length > 0) {
-        let activeIdx = -1;
+        let activeIdx = 0; // Default to first stanza
         for (let i = poem.timestamps.length - 1; i >= 0; i--) {
           if (current >= poem.timestamps[i] - 0.5) { // 0.5s offset for smoother transition
             activeIdx = i;
@@ -415,10 +415,24 @@ progressBar.addEventListener('click', e => {
 
 // ===== Sync Stanza Click =====
 function syncStanza(idx) {
-  // Check if we are in lyric mode
   const hasTimestamps = poem.timestamps && poem.timestamps.some(t => t > 0);
-  if (!hasTimestamps || !ytPlayer || !ytPlayer.seekTo) return;
   
+  if (!hasTimestamps) {
+    // Mobile tap-to-reveal for normal poems
+    const wrapper = document.getElementById(`stanza-wrapper-${idx}`);
+    if (wrapper) {
+      const isCurrentlyActive = wrapper.classList.contains('active');
+      // Remove active from all
+      document.querySelectorAll('.poem-stanza-wrapper').forEach(el => el.classList.remove('active'));
+      // Toggle on the clicked one
+      if (!isCurrentlyActive) {
+        wrapper.classList.add('active');
+      }
+    }
+    return;
+  }
+  
+  if (!ytPlayer || !ytPlayer.seekTo) return;
   const targetTime = poem.timestamps[idx] || 0;
   ytPlayer.seekTo(targetTime, true);
   
