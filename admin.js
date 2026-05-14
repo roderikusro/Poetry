@@ -722,3 +722,11 @@ const availableEmojis = ["🌙", "🌻", "💌", "🌧️", "🦋", "🌸", "�
   showActionToast('✅ File data.js siap diunduh!');
 }
 }
+// ===== UI Utility =====
+function showActionToast(msg) {
+  const toast = document.getElementById('actionToast');
+  if (!toast) return;
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
