@@ -780,12 +780,13 @@ body::after {
 
 /* Poem Body */
 .poem-page-body {
-  background: var(--bg-card);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(200, 155, 123, 0.25);
-  border-radius: var(--radius);
-  padding: 40px 36px;
-  box-shadow: var(--shadow-soft);
+  background: linear-gradient(145deg, rgba(35, 30, 50, 0.75), rgba(20, 16, 28, 0.85));
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 50px 45px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   position: relative;
   overflow: hidden;
   animation: fadeInUp 0.7s ease-out 0.1s both;
@@ -799,13 +800,25 @@ body::after {
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, var(--pink), var(--lavender), var(--mint));
-  border-radius: var(--radius) var(--radius) 0 0;
+  border-radius: 24px 24px 0 0;
+}
+
+.poem-page-body::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 24px;
+  pointer-events: none;
+  background: radial-gradient(circle at top right, rgba(212, 107, 158, 0.06), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(139, 126, 200, 0.06), transparent 50%);
+  z-index: -1;
 }
 
 .poem-stanza {
-  font-size: 1.08rem;
-  line-height: 2;
-  color: var(--text-primary);
+  font-size: 1.15rem;
+  line-height: 2.1;
+  color: rgba(255, 255, 255, 0.9);
+  letter-spacing: 0.3px;
   animation: fadeInUp 0.5s ease-out both;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   transform-origin: left center;
@@ -2784,31 +2797,54 @@ div.stanza-input[contenteditable="true"]:empty::before {
   
   .lyric-snippet {
     position: absolute;
-    left: calc(100% + 40px);
+    left: calc(100% + 50px);
     top: 50%;
     transform: translateY(-50%) scale(0.98);
-    width: 300px;
+    width: 320px;
     max-width: none;
     margin: 0;
     text-align: left;
-    border-radius: 12px;
+    border-radius: 0 16px 16px 0;
     justify-content: flex-start;
-    padding: 14px 20px;
-    background: var(--bg-card);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(200, 155, 123, 0.25);
-    box-shadow: var(--shadow-soft);
+    padding: 16px 24px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-left: 3px solid rgba(139, 126, 200, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  /* Connecting line bridge */
+  .lyric-snippet::before {
+    content: '';
+    position: absolute;
+    left: -53px;
+    top: 50%;
+    width: 50px;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255,255,255,0), rgba(139, 126, 200, 0.4));
+    z-index: -1;
+    transition: all 0.3s ease;
   }
 
   .lyric-snippet:hover {
-    background: rgba(46, 40, 64, 0.8);
-    border-color: rgba(212, 107, 158, 0.4);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+    border-left: 3px solid rgba(212, 107, 158, 0.6);
   }
 
   .lyric-snippet.active {
     transform: translateY(-50%) scale(1.02);
-    background: linear-gradient(135deg, rgba(28, 24, 42, 0.9), rgba(46, 40, 64, 0.9));
-    border-color: rgba(212, 165, 116, 0.5);
-    box-shadow: 0 8px 24px rgba(212, 165, 116, 0.15);
+    background: linear-gradient(135deg, rgba(139, 126, 200, 0.15), rgba(212, 107, 158, 0.05));
+    border-color: rgba(255, 255, 255, 0.1);
+    border-left: 3px solid var(--pink);
+    color: var(--text-accent);
+    box-shadow: 0 12px 40px rgba(212, 107, 158, 0.2);
+  }
+
+  .lyric-snippet.active::before {
+    background: linear-gradient(90deg, rgba(255,255,255,0), var(--pink));
+    height: 2px;
+    box-shadow: 0 0 10px rgba(212, 107, 158, 0.4);
   }
 }
