@@ -486,12 +486,19 @@ function downloadStanzaPNG(idx) {
   const borderStyle = align === 'left' ? 'border-left:4px solid #d4a574; padding-left:24px;' : '';
   const quoteAlign = align === 'center' ? 'text-align:center' : (align === 'right' ? 'text-align:right' : 'text-align:left');
 
+  const lyricHTML = poem.lyrics && poem.lyrics[idx] ? `
+    <div style="margin-top:16px; margin-bottom:20px; font-style:italic; font-size:16px; color:#9a8fb0; text-align:right;">
+      <span style="opacity:0.6;">🎵</span> "${poem.lyrics[idx]}"
+    </div>
+  ` : '<div style="margin-top:30px;"></div>';
+
   const card = buildPNGCard(`
-    <div style="margin-bottom:40px; ${borderStyle}">
+    <div style="margin-bottom:20px; ${borderStyle}">
       <div style="${quoteAlign}; font-size:54px; opacity:.15; font-family:serif; line-height:0.5; margin-bottom:10px;">\u201C</div>
       <div style="font-size:22px; line-height:1.9; color:#e0d8ec; font-family:inherit;">${content}</div>
       <div style="text-align:${align === 'left' ? 'right' : (align === 'right' ? 'left' : 'center')}; font-size:54px; opacity:.15; font-family:serif; line-height:0.5; margin-top:10px;">\u201D</div>
     </div>
+    ${lyricHTML}
     <div style="border-top:1px solid rgba(139,126,200,0.2); padding-top:20px; display:flex; justify-content:space-between; align-items:center;">
       <span style="font-style:italic; font-size:14px; color:#9a8fb0; opacity:0.8;">&mdash; ${poem.author} &nbsp;\u00B7&nbsp; ${poem.title}</span>
       <span style="font-size:11px; color:rgba(154,143,176,0.3); letter-spacing:0.5px;">roderikusro.github.io/Poem</span>
@@ -526,7 +533,13 @@ function downloadFullPoemPNG() {
     const divider = si < poem.stanzas.length - 1
       ? '<div style="text-align:center; color:rgba(107,158,138,0.4); font-size:18px; margin:30px 0;">&#x273F;</div>'
       : '';
-    return `<div style="font-size:20px; line-height:2; color:#e0d8ec; margin-bottom:10px;">${content}</div>${divider}`;
+    const lyricHTML = poem.lyrics && poem.lyrics[si] ? `
+      <div style="margin-top:16px; margin-bottom: 30px; font-style:italic; font-size:16px; color:#9a8fb0; text-align:right; opacity:0.8;">
+        <span style="opacity:0.6;">🎵</span> "${poem.lyrics[si]}"
+      </div>
+    ` : '';
+    const bottomMargin = lyricHTML ? '0' : '20px';
+    return `<div style="font-size:20px; line-height:2; color:#e0d8ec; margin-bottom:${bottomMargin};">${content}</div>${lyricHTML}${divider}`;
   }).join('');
 
   const card = buildPNGCard(`

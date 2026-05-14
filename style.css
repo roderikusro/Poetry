@@ -814,33 +814,42 @@ body::after {
 /* Spotify-like Lyric Snippet Styling */
 .lyric-snippet {
   cursor: pointer;
-  margin-top: 15px;
-  padding: 10px 15px;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  margin-top: 12px;
+  margin-bottom: 8px;
+  margin-left: auto; /* Push to right */
+  width: fit-content;
+  max-width: 85%; /* Responsive */
+  padding: 8px 16px;
+  border-radius: 20px 20px 4px 20px; /* Chat bubble style facing right */
+  background: linear-gradient(135deg, rgba(139, 126, 200, 0.1), rgba(212, 107, 158, 0.05));
+  border: 1px solid rgba(139, 126, 200, 0.2);
+  font-size: 0.9rem;
   font-style: italic;
-  text-align: center;
+  text-align: right;
   color: var(--text-secondary);
-  opacity: 0.4;
+  opacity: 0.6;
   transform: scale(0.98);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
-  justify-content: center;
   gap: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .lyric-snippet:hover {
-  background: rgba(255, 255, 255, 0.05);
-  opacity: 0.7;
+  background: linear-gradient(135deg, rgba(139, 126, 200, 0.2), rgba(212, 107, 158, 0.15));
+  opacity: 0.9;
+  border-color: rgba(212, 107, 158, 0.3);
 }
 
 .lyric-snippet.active {
   opacity: 1;
   transform: scale(1.02);
   color: var(--text-accent);
-  background: transparent;
-  text-shadow: 0 0 15px rgba(212, 165, 116, 0.3);
+  background: linear-gradient(135deg, rgba(212, 165, 116, 0.15), rgba(212, 107, 158, 0.1));
+  border-color: rgba(212, 165, 116, 0.4);
+  text-shadow: 0 0 10px rgba(212, 165, 116, 0.2);
+  box-shadow: 0 6px 16px rgba(212, 165, 116, 0.15);
 }
 
 .lyric-icon {
