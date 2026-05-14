@@ -92,11 +92,11 @@ function renderPoem() {
               <span>Unduh PNG</span>
             </button>
           </div>
-        </div>
-        ${poem.lyrics && poem.lyrics[i] ? `
-        <div class="lyric-snippet" id="lyric-snippet-${i}" onclick="syncStanza(${i})">
-          <span class="lyric-icon">🎵</span> "${poem.lyrics[i]}"
-        </div>` : ''}`;
+          ${poem.lyrics && poem.lyrics[i] ? `
+          <div class="lyric-snippet" id="lyric-snippet-${i}" onclick="syncStanza(${i}); event.stopPropagation();">
+            <span class="lyric-icon">🎵</span> "${poem.lyrics[i]}"
+          </div>` : ''}
+        </div>`;
     }).join('<div class="stanza-divider"><span>✦</span></div>');
 
 
@@ -149,16 +149,16 @@ function tryUnlock() {
               <span class="stanza-btn-icon">📋</span>
               <span>Salin</span>
             </button>
-            <button class="stanza-btn download-btn btn-revealed" onclick="downloadStanzaPNG(${i})" title="Unduh sebagai gambar">
+            <button class="stanza-btn download-btn btn-revealed" onclick="downloadStanzaPNG(${i})" title="Unduh gambar PNG">
               <span class="stanza-btn-icon">🖼️</span>
               <span>Unduh PNG</span>
             </button>
           </div>
-        </div>
-        ${poem.lyrics && poem.lyrics[i] ? `
-        <div class="lyric-snippet" id="lyric-snippet-${i}" onclick="syncStanza(${i})">
-          <span class="lyric-icon">🎵</span> "${poem.lyrics[i]}"
-        </div>` : ''}`;
+          ${poem.lyrics && poem.lyrics[i] ? `
+          <div class="lyric-snippet" id="lyric-snippet-${i}" onclick="syncStanza(${i}); event.stopPropagation();">
+            <span class="lyric-icon">🎵</span> "${poem.lyrics[i]}"
+          </div>` : ''}
+        </div>`;
     }).join('<div class="stanza-divider">✿</div>');
 
     // Replace placeholders with real content
