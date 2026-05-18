@@ -210,9 +210,15 @@ body::after {
   margin-bottom: 8px;
 }
 
-.header p {
-  font-size: 1.05rem;
+.header-quote {
+  font-size: 1.1rem;
   color: var(--text-secondary);
+  font-style: italic;
+  max-width: 550px;
+  margin: 0 auto;
+  line-height: 1.6;
+  opacity: 0.9;
+  font-weight: 500;
 }
 
 .header-divider {
