@@ -34,15 +34,17 @@
 html {
   scroll-behavior: smooth;
   background-color: var(--bg-primary);
+  overscroll-behavior-y: none;
 }
 
 body {
   font-family: 'Quicksand', sans-serif;
-  background: var(--bg-primary);
+  background: transparent;
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
   position: relative;
+  overscroll-behavior-y: none;
 }
 
 /* ===== Conceptual Background Text ===== */
