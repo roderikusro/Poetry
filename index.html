@@ -47,6 +47,68 @@
     <div class="header-divider"></div>
   </header>
 
+  <!-- Spotify-Style Playlist Section -->
+  <section class="playlist-section" id="playlistSection">
+    <div class="playlist-container">
+      <!-- Playlist Header -->
+      <div class="playlist-header">
+        <div class="playlist-cover" id="playlistCover">
+          <img src="https://i.ytimg.com/vi/tVj5jUW4LvI/hqdefault.jpg" alt="Playlist Cover" id="playlistCoverImg">
+          <div class="playlist-cover-overlay">
+            <button class="playlist-play-main" id="playlistPlayMain" title="Putar Playlist">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="playlist-info">
+          <span class="playlist-type-badge">PLAYLIST</span>
+          <h2 class="playlist-title">Roderikus Poetry</h2>
+          <p class="playlist-description">Kumpulan lagu yang menemani setiap bait puisi ✨</p>
+          <div class="playlist-meta-info">
+            <img src="favicon-32x32.png" alt="avatar" class="playlist-owner-avatar">
+            <span class="playlist-owner">Nando</span>
+            <span class="playlist-meta-dot">•</span>
+            <span class="playlist-track-count" id="playlistTrackCount">2 lagu</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Playlist Controls -->
+      <div class="playlist-controls">
+        <button class="playlist-btn-shuffle" id="btnShuffle" title="Acak">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z"/></svg>
+        </button>
+        <a href="https://www.youtube.com/playlist?list=PLGpk8ZFZOuhuiggl6Nz86e3GI-n0otnMQ" target="_blank" rel="noopener" class="playlist-btn-open" title="Buka di YouTube">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/></svg>
+          YouTube
+        </a>
+      </div>
+
+      <!-- Track List -->
+      <div class="playlist-tracks" id="playlistTracks">
+        <!-- Tracks rendered by JS -->
+      </div>
+
+      <!-- Embedded Player (hidden initially, shown when a track is selected) -->
+      <div class="playlist-player" id="playlistPlayer">
+        <div class="playlist-player-inner">
+          <div class="player-now-playing">
+            <div class="player-equalizer" id="playerEqualizer">
+              <span></span><span></span><span></span><span></span>
+            </div>
+            <div class="player-track-info">
+              <span class="player-track-title" id="playerTrackTitle">Pilih lagu untuk diputar</span>
+              <span class="player-track-artist" id="playerTrackArtist"></span>
+            </div>
+          </div>
+          <div class="player-iframe-wrap" id="playerIframeWrap">
+            <!-- iframe inserted by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- Sort & Filter Bar -->
   <div class="container">
     <div class="home-toolbar" id="homeToolbar">

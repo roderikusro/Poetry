@@ -1,3 +1,112 @@
+// ===== Spotify-Style Playlist Logic =====
+const playlistData = [
+  {
+    id: 'tVj5jUW4LvI',
+    title: 'Hindia - Ramai Sepi Bersama',
+    artist: 'Hindia',
+    thumb: 'https://i.ytimg.com/vi/tVj5jUW4LvI/hqdefault.jpg',
+    duration: '4:28'
+  },
+  {
+    id: '0ZWcOXVl8TQ',
+    title: 'Officially Missing You - Tamia (Cover)',
+    artist: 'CHILL PILL TV',
+    thumb: 'https://i.ytimg.com/vi/0ZWcOXVl8TQ/hqdefault.jpg',
+    duration: '4:52'
+  }
+];
+
+let currentTrackIndex = -1;
+let isShuffled = false;
+
+function initPlaylist() {
+  const tracksEl = document.getElementById('playlistTracks');
+  const trackCountEl = document.getElementById('playlistTrackCount');
+  
+  if (!tracksEl) return;
+  
+  trackCountEl.textContent = `${playlistData.length} lagu`;
+  
+  tracksEl.innerHTML = playlistData.map((track, i) => `
+    <div class="playlist-track" data-index="${i}" id="playlist-track-${i}" onclick="playTrack(${i})">
+      <span class="track-number">${i + 1}</span>
+      <div class="track-play-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </div>
+      <div class="track-thumb">
+        <img src="${track.thumb}" alt="${track.title}" loading="lazy">
+      </div>
+      <div class="track-details">
+        <div class="track-title">${track.title}</div>
+        <div class="track-artist">${track.artist}</div>
+      </div>
+      <span class="track-duration">${track.duration}</span>
+    </div>
+  `).join('');
+
+  // Play button on cover
+  const playMainBtn = document.getElementById('playlistPlayMain');
+  if (playMainBtn) {
+    playMainBtn.addEventListener('click', () => playTrack(0));
+  }
+
+  // Shuffle button
+  const shuffleBtn = document.getElementById('btnShuffle');
+  if (shuffleBtn) {
+    shuffleBtn.addEventListener('click', () => {
+      isShuffled = !isShuffled;
+      shuffleBtn.classList.toggle('active', isShuffled);
+    });
+  }
+}
+
+function playTrack(index) {
+  const track = playlistData[index];
+  if (!track) return;
+  
+  currentTrackIndex = index;
+  
+  // Update playing state on tracks
+  document.querySelectorAll('.playlist-track').forEach((el, i) => {
+    el.classList.toggle('playing', i === index);
+    const playIcon = el.querySelector('.track-play-icon');
+    if (i === index) {
+      playIcon.innerHTML = `<div class="track-equalizer"><span></span><span></span><span></span></div>`;
+    } else {
+      playIcon.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+    }
+  });
+  
+  // Update cover image
+  const coverImg = document.getElementById('playlistCoverImg');
+  if (coverImg) {
+    coverImg.src = track.thumb;
+  }
+  
+  // Show player
+  const playerEl = document.getElementById('playlistPlayer');
+  playerEl.classList.add('active');
+  
+  // Update player info
+  document.getElementById('playerTrackTitle').textContent = track.title;
+  document.getElementById('playerTrackArtist').textContent = track.artist;
+  
+  // Load iframe
+  const iframeWrap = document.getElementById('playerIframeWrap');
+  iframeWrap.innerHTML = `<iframe 
+    src="https://www.youtube.com/embed/${track.id}?autoplay=1&rel=0&modestbranding=1" 
+    allow="autoplay; encrypted-media" 
+    allowfullscreen
+    title="${track.title}"
+  ></iframe>`;
+  
+  // Scroll player into view smoothly
+  playerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// Initialize playlist on load
+document.addEventListener('DOMContentLoaded', initPlaylist);
+
 // ===== Home Page Logic =====
 const poemListEl = document.getElementById('poemList');
 const poemCountEl = document.getElementById('poemCount');
