@@ -4348,7 +4348,7 @@ div.stanza-input[contenteditable="true"]:empty::before {
 @media (max-width: 600px) {
   .gallery-toggle {
     right: 0;
-    bottom: 80px;
+    bottom: 28px;
     top: auto;
     transform: none;
     width: auto;
