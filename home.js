@@ -970,6 +970,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 const galleryPhotos = [];
 for (let i = 4639; i <= 4762; i++) {
+  if (i === 4742 || i === 4749 || i === 4750) continue;
   galleryPhotos.push(`Aset/MMJ0${i}.jpg`);
 }
 
