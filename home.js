@@ -100,12 +100,65 @@ function playTrack(index) {
     title="${track.title}"
   ></iframe>`;
   
-  // Scroll player into view smoothly
-  playerEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Scroll player into view inside sidebar
+  const playlistContainer = document.querySelector('.playlist-sidebar .playlist-container');
+  if (playlistContainer) {
+    playlistContainer.scrollTo({ top: playlistContainer.scrollHeight, behavior: 'smooth' });
+  }
 }
 
-// Initialize playlist on load
-document.addEventListener('DOMContentLoaded', initPlaylist);
+// ===== Sidebar Toggle Logic =====
+function initSidebar() {
+  const sidebar = document.getElementById('playlistSidebar');
+  const toggleBtn = document.getElementById('sidebarToggle');
+  const overlay = document.getElementById('sidebarOverlay');
+  const closeBtn = document.getElementById('sidebarCloseBtn');
+  const musicIcon = toggleBtn?.querySelector('.sidebar-toggle-music');
+  const closeIcon = toggleBtn?.querySelector('.sidebar-toggle-close');
+
+  if (!sidebar || !toggleBtn) return;
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('active');
+    toggleBtn.classList.add('active');
+    if (musicIcon) musicIcon.style.display = 'none';
+    if (closeIcon) closeIcon.style.display = 'block';
+  }
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+    toggleBtn.classList.remove('active');
+    if (musicIcon) musicIcon.style.display = 'block';
+    if (closeIcon) closeIcon.style.display = 'none';
+  }
+
+  function toggleSidebar() {
+    if (sidebar.classList.contains('open')) {
+      closeSidebar();
+    } else {
+      openSidebar();
+    }
+  }
+
+  toggleBtn.addEventListener('click', toggleSidebar);
+  overlay.addEventListener('click', closeSidebar);
+  closeBtn.addEventListener('click', closeSidebar);
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+      closeSidebar();
+    }
+  });
+}
+
+// Initialize playlist + sidebar on load
+document.addEventListener('DOMContentLoaded', () => {
+  initPlaylist();
+  initSidebar();
+});
 
 // ===== Home Page Logic =====
 const poemListEl = document.getElementById('poemList');
