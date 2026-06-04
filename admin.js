@@ -587,13 +587,6 @@ async function generatePoemWithAI() {
 
 Tugasmu adalah membuat puisi berdasarkan topik atau gambar yang diberikan.
 
-PENTING - KONTEKS KHUSUS:
-Jika topik berkaitan dengan atau menyebut nama "Sisi":
-Gunakan metafora seni, musik, dan kupu-kupu. Pesan utamanya adalah kebahagiaan, harapan, dan membebaskannya dari cerita duka.
-
-Jika topik berkaitan dengan atau menyebut nama "Shofia":
-Gunakan metafora hujan, ruang gelap, dan penyembuhan. Pesan utamanya adalah bagaimana kehadirannya adalah obat tak terduga untuk luka yang disembunyikan.
-
 Aturan Output:
 Berikan hasil dalam format JSON persis seperti ini, tanpa markdown block, hanya JSON murni:
 {
@@ -611,7 +604,7 @@ Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dal
     const lowerPrompt = userPrompt.toLowerCase();
     if (!lowerPrompt.includes('sisi') && !lowerPrompt.includes('shofia')) {
       const randomName = Math.random() > 0.5 ? 'Sisi' : 'Shofia';
-      userPrompt += `\n(Catatan: Puisi ini harus secara khusus ditujukan untuk ${randomName})`;
+      userPrompt += `\n(Catatan: Pastikan nama "${randomName}" disebutkan dan menjadi bagian dari konteks puisi ini.)`;
     }
 
     contentArr.push({ type: "text", text: userPrompt });
