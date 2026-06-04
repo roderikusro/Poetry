@@ -562,13 +562,12 @@ function deletePoem(id) {
 // ===== AI Copilot (OpenRouter) =====
 async function generatePoemWithAI() {
   const promptInput = document.getElementById('copilotPrompt').value.trim();
-  const imageInput = document.getElementById('copilotImage').files[0];
   const modelSelect = document.getElementById('copilotModel').value;
   const statusEl = document.getElementById('copilotStatus');
   const btnEl = document.getElementById('copilotBtn');
 
-  if (!promptInput && !imageInput) {
-    statusEl.textContent = '⚠️ Masukkan topik atau unggah gambar untuk AI.';
+  if (!promptInput) {
+    statusEl.textContent = '⚠️ Masukkan topik untuk AI.';
     statusEl.style.color = '#ff6b6b';
     return;
   }
@@ -585,7 +584,16 @@ async function generatePoemWithAI() {
     // Add text prompt
     const systemInstruction = `Kamu adalah Roderikus, seorang penyair ahli yang romantis, puitis, dan sedikit melankolis. Tulisanmu adalah "sebuah novel tentang sunyi, dari manusia yang menyimpan percakapan dalam kepala". 
 
-Tugasmu adalah membuat puisi berdasarkan topik atau gambar yang diberikan.
+Tugasmu adalah membuat puisi berdasarkan topik yang diberikan.
+
+PENTING - KONTEKS KHUSUS:
+Jika topik berkaitan dengan atau menyebut nama "Sisi":
+Gunakan metafora seni, musik, dan kupu-kupu. Pesan utamanya adalah kebahagiaan, harapan, dan membebaskannya dari cerita duka.
+JUDUL PUISI: Judul puisi WAJIB memuat nama "Sisi" (contoh: "Untuk Sisi", "Sisi", dll).
+
+Jika topik berkaitan dengan atau menyebut nama "Shofia":
+Gunakan metafora hujan, ruang gelap, dan penyembuhan. Pesan utamanya adalah bagaimana kehadirannya adalah obat tak terduga untuk luka yang disembunyikan.
+JUDUL PUISI: Judul puisi WAJIB memuat nama "Shofia" (contoh: "Untuk Shofia", "Shofia", dll).
 
 Aturan Output:
 Berikan hasil dalam format JSON persis seperti ini, tanpa markdown block, hanya JSON murni:
@@ -598,25 +606,18 @@ Berikan hasil dalam format JSON persis seperti ini, tanpa markdown block, hanya 
 }
 Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dalam bait tersebut. Jangan tambahkan penjelasan lain.`;
 
-    let userPrompt = promptInput ? `Topik: ${promptInput}` : 'Buatkan puisi berdasarkan gambar ini.';
+    let userPrompt = promptInput ? `Topik: ${promptInput}` : 'Buatkan puisi untukku.';
     
     // Automatically assign Sisi or Shofia if neither is mentioned
     const lowerPrompt = userPrompt.toLowerCase();
     if (!lowerPrompt.includes('sisi') && !lowerPrompt.includes('shofia')) {
       const randomName = Math.random() > 0.5 ? 'Sisi' : 'Shofia';
-      userPrompt += `\n(Catatan: Pastikan nama "${randomName}" disebutkan dan menjadi bagian dari konteks puisi ini.)`;
+      userPrompt += `\n(Catatan: Puisi ini harus secara khusus ditujukan untuk ${randomName})`;
     }
 
     contentArr.push({ type: "text", text: userPrompt });
 
-    // Handle image upload if exists
-    if (imageInput) {
-      const base64Img = await fileToBase64(imageInput);
-      contentArr.push({
-        type: "image_url",
-        image_url: { url: base64Img }
-      });
-    }
+
 
     const payload = {
       model: modelSelect,

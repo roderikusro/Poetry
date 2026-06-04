@@ -169,6 +169,10 @@
             <span class="load-more-icon">📸</span>
             <span>Muat Lebih Banyak</span>
           </button>
+          <button class="load-more-btn" id="downloadCollageBtn" style="margin-top: 10px; border-color: rgba(212, 165, 116, 0.4); background: linear-gradient(135deg, rgba(212, 165, 116, 0.1), rgba(160, 140, 212, 0.05));">
+            <span class="load-more-icon">🖼️</span>
+            <span>Unduh Kolase</span>
+          </button>
         </div>
       </div>
     </div>
@@ -317,17 +321,12 @@
           <textarea class="admin-input" id="homeCopilotPrompt" rows="3" placeholder="Tuliskan topik... (misal: Hujan di bulan Juni)"></textarea>
         </div>
         
-        <div class="admin-field-row" style="margin-bottom: 15px; display: flex; gap: 10px;">
-          <div class="admin-field" style="flex: 1; margin-bottom: 0;">
-            <select class="admin-input admin-select" id="homeCopilotModel" style="height: 100%;">
-              <option value="nvidia/nemotron-nano-12b-v2-vl:free">Nemotron 12B Vision (Free)</option>
-              <option value="google/gemma-4-26b-a4b-it:free">Gemma 4 26B Vision (Free)</option>
-              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Hanya Teks)</option>
-            </select>
-          </div>
-          <div class="admin-field" style="flex: 1; margin-bottom: 0;">
-            <input type="file" id="homeCopilotImage" accept="image/*" class="admin-input" style="padding: 10px; height: 100%;">
-          </div>
+        <div class="admin-field" style="margin-bottom: 15px;">
+          <select class="admin-input admin-select" id="homeCopilotModel">
+            <option value="openrouter/auto">Owl Alpha (Default)</option>
+            <option value="google/gemma-4-26b-a4b-it:free">Gemma 4 26B Vision (Free)</option>
+            <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Hanya Teks)</option>
+          </select>
         </div>
 
         <button type="button" class="admin-primary-btn copilot-btn" id="homeCopilotBtn" onclick="homeGeneratePoem()">

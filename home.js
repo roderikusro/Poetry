@@ -1038,6 +1038,12 @@ function initGallery() {
     loadMoreBtn.onclick = () => loadMorePhotos();
   }
 
+  // Download Collage button
+  const downloadCollageBtn = document.getElementById('downloadCollageBtn');
+  if (downloadCollageBtn) {
+    downloadCollageBtn.onclick = () => downloadCollagePNG();
+  }
+
   // Close on Escape
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
@@ -1158,6 +1164,153 @@ function navigateLightbox(direction) {
   }
 }
 
+function downloadCollagePNG() {
+  if (typeof html2canvas === 'undefined') {
+    showActionToast('⚠️ Modul gambar belum siap, coba lagi.');
+    return;
+  }
+  
+  if (!galleryPhotos || galleryPhotos.length === 0) {
+    showActionToast('⚠️ Gambar belum dimuat.');
+    return;
+  }
+
+  // Pilih 9 gambar secara acak setiap kali diunduh
+  const imagesToDownload = [];
+  const photosCopy = [...galleryPhotos];
+  for (let i = 0; i < 9; i++) {
+    if (photosCopy.length === 0) break;
+    const rIdx = Math.floor(Math.random() * photosCopy.length);
+    imagesToDownload.push(photosCopy[rIdx]);
+    photosCopy.splice(rIdx, 1);
+  }
+  
+  const collageContainer = document.createElement('div');
+  collageContainer.className = 'collage-export-wrapper';
+  collageContainer.style.cssText = `
+    position: fixed;
+    top: -9999px;
+    left: -9999px;
+    width: 1080px;
+    height: 1350px;
+    background: url('BG_kolase.webp') center/cover no-repeat;
+    box-sizing: border-box;
+    border-radius: 16px;
+    border: 16px solid #13101e;
+    overflow: hidden;
+    box-shadow: inset 0 0 100px rgba(0,0,0,0.6);
+  `;
+  
+  const decorations = ['', 'has-tape', 'has-pin'];
+
+  imagesToDownload.forEach((src, i) => {
+    const row = Math.floor(i / 3);
+    const col = i % 3;
+    
+    const cellWidth = 1080 / 3;
+    const cellHeight = 1350 / 3;
+    
+    const baseX = col * cellWidth + cellWidth / 2;
+    const baseY = row * cellHeight + cellHeight / 2;
+    
+    const jitterX = (Math.random() - 0.5) * 150;
+    const jitterY = (Math.random() - 0.5) * 150;
+    
+    const finalX = baseX + jitterX;
+    const finalY = baseY + jitterY;
+    
+    const rotation = (Math.random() * 50 - 25).toFixed(1);
+    
+    const imgWidth = Math.floor(Math.random() * 150 + 250); 
+    
+    const zIndex = Math.floor(Math.random() * 30) + 1;
+
+    const deco = decorations[Math.floor(Math.random() * decorations.length)];
+
+    const item = document.createElement('div');
+    item.className = `collage-item ${deco}`;
+    item.style.cssText = `
+      position: absolute;
+      left: ${finalX}px;
+      top: ${finalY}px;
+      width: ${imgWidth}px;
+      transform: translate(-50%, -50%) rotate(${rotation}deg);
+      background: #f8f5f2;
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: 2px;
+      padding: 8px 8px 32px 8px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 5px 15px rgba(0, 0, 0, 0.3);
+      z-index: ${zIndex};
+      opacity: 1;
+      transition: none;
+      animation: none;
+    `;
+
+    const img = document.createElement('img');
+    img.src = src;
+    img.crossOrigin = "Anonymous";
+    img.style.cssText = `
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 2px;
+      object-fit: cover;
+    `;
+    item.appendChild(img);
+    collageContainer.appendChild(item);
+  });
+  
+  const watermark = document.createElement('div');
+  watermark.style.cssText = `
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    color: rgba(255, 255, 255, 0.25);
+    font-family: 'Quicksand', sans-serif;
+    font-size: 15px;
+    z-index: 100;
+    letter-spacing: 2px;
+  `;
+  watermark.textContent = "roderikusro.github.io/Poetry";
+  collageContainer.appendChild(watermark);
+
+  document.body.appendChild(collageContainer);
+  
+  showActionToast('⏳ Menyiapkan kolase...');
+  
+  const promises = Array.from(collageContainer.querySelectorAll('img')).map(img => {
+    return new Promise(resolve => {
+      if (img.complete) resolve();
+      else {
+        img.onload = resolve;
+        img.onerror = resolve;
+      }
+    });
+  });
+
+  Promise.all(promises).then(() => {
+    setTimeout(() => {
+      html2canvas(collageContainer, { 
+        scale: 2, 
+        backgroundColor: null, 
+        useCORS: true, 
+        logging: false 
+      }).then(canvas => {
+        collageContainer.remove();
+        const link = document.createElement('a');
+        link.download = 'Kolase_Kenangan.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        showActionToast('🖼️ Kolase berhasil diunduh!');
+      }).catch(err => {
+        console.error(err);
+        collageContainer.remove();
+        showActionToast('❌ Gagal mengunduh kolase.');
+      });
+    }, 500);
+  });
+}
+
 // ===== AI Copilot (Homepage) =====
 function toggleCopilotWidget() {
   const panel = document.getElementById('copilotPanel');
@@ -1168,13 +1321,12 @@ function toggleCopilotWidget() {
 
 async function homeGeneratePoem() {
   const promptInput = document.getElementById('homeCopilotPrompt').value.trim();
-  const imageInput = document.getElementById('homeCopilotImage').files[0];
   const modelSelect = document.getElementById('homeCopilotModel').value;
   const statusEl = document.getElementById('homeCopilotStatus');
   const btnEl = document.getElementById('homeCopilotBtn');
 
-  if (!promptInput && !imageInput) {
-    statusEl.textContent = '⚠️ Masukkan topik atau unggah gambar untuk AI.';
+  if (!promptInput) {
+    statusEl.textContent = '⚠️ Masukkan topik untuk AI.';
     statusEl.style.color = '#ff6b6b';
     return;
   }
@@ -1190,7 +1342,16 @@ async function homeGeneratePoem() {
     
     const systemInstruction = `Kamu adalah Roderikus, seorang penyair ahli yang romantis, puitis, dan sedikit melankolis. Tulisanmu adalah "sebuah novel tentang sunyi, dari manusia yang menyimpan percakapan dalam kepala". 
 
-Tugasmu adalah membuat puisi berdasarkan topik atau gambar yang diberikan.
+Tugasmu adalah membuat puisi berdasarkan topik yang diberikan.
+
+PENTING - KONTEKS KHUSUS:
+Jika topik berkaitan dengan atau menyebut nama "Sisi":
+Gunakan metafora seni, musik, dan kupu-kupu. Pesan utamanya adalah kebahagiaan, harapan, dan membebaskannya dari cerita duka.
+JUDUL PUISI: Judul puisi WAJIB memuat nama "Sisi" (contoh: "Untuk Sisi", "Sisi", dll).
+
+Jika topik berkaitan dengan atau menyebut nama "Shofia":
+Gunakan metafora hujan, ruang gelap, dan penyembuhan. Pesan utamanya adalah bagaimana kehadirannya adalah obat tak terduga untuk luka yang disembunyikan.
+JUDUL PUISI: Judul puisi WAJIB memuat nama "Shofia" (contoh: "Untuk Shofia", "Shofia", dll).
 
 Aturan Output:
 Berikan hasil dalam format JSON persis seperti ini, tanpa markdown block, hanya JSON murni:
@@ -1203,29 +1364,18 @@ Berikan hasil dalam format JSON persis seperti ini, tanpa markdown block, hanya 
 }
 Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dalam bait tersebut. Jangan tambahkan penjelasan lain.`;
 
-    let userPrompt = promptInput ? `Topik: ${promptInput}` : 'Buatkan puisi berdasarkan gambar ini.';
+    let userPrompt = promptInput ? `Topik: ${promptInput}` : 'Buatkan puisi untukku.';
     
     // Automatically assign Sisi or Shofia if neither is mentioned
     const lowerPrompt = userPrompt.toLowerCase();
     if (!lowerPrompt.includes('sisi') && !lowerPrompt.includes('shofia')) {
       const randomName = Math.random() > 0.5 ? 'Sisi' : 'Shofia';
-      userPrompt += `\n(Catatan: Pastikan nama "${randomName}" disebutkan dan menjadi bagian dari konteks puisi ini.)`;
+      userPrompt += `\n(Catatan: Puisi ini harus secara khusus ditujukan untuk ${randomName})`;
     }
     
     contentArr.push({ type: "text", text: userPrompt });
 
-    if (imageInput) {
-      const base64Img = await new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(imageInput);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-      });
-      contentArr.push({
-        type: "image_url",
-        image_url: { url: base64Img }
-      });
-    }
+
 
     const payload = {
       model: modelSelect,
@@ -1285,7 +1435,6 @@ Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dal
     
     // Clear inputs
     document.getElementById('homeCopilotPrompt').value = '';
-    document.getElementById('homeCopilotImage').value = '';
 
   } catch (error) {
     console.error("Copilot Error:", error);
