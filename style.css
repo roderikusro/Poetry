@@ -4534,14 +4534,15 @@ div.stanza-input[contenteditable="true"]:empty::before {
 /* Small screens */
 @media (max-width: 600px) {
   .gallery-toggle {
-    right: 0;
-    bottom: 28px;
+    left: 0;
+    right: auto;
+    bottom: 78px;
     top: auto;
     transform: none;
     width: auto;
     height: 40px;
-    border-radius: 12px 0 0 12px;
-    padding: 0 10px 0 14px;
+    border-radius: 0 12px 12px 0;
+    padding: 0 14px 0 10px;
     animation: galleryTabSlideInMobile 0.8s ease-out 0.8s both;
   }
 
@@ -4566,7 +4567,7 @@ div.stanza-input[contenteditable="true"]:empty::before {
   .gallery-toggle:hover {
     width: auto;
     height: 40px;
-    transform: translateX(-3px);
+    transform: translateX(3px);
   }
 
   .gallery-toggle.active {
@@ -4578,11 +4579,11 @@ div.stanza-input[contenteditable="true"]:empty::before {
   @keyframes galleryTabSlideInMobile {
     0% {
       opacity: 0;
-      transform: translateX(100%);
+      transform: translateX(-100%);
     }
     60% {
       opacity: 1;
-      transform: translateX(-4px);
+      transform: translateX(4px);
     }
     100% {
       opacity: 1;
