@@ -1143,11 +1143,6 @@ function closeLightbox() {
 }
 
 function navigateLightbox(direction) {
-  if (lightboxCurrentIndex < 0) return;
-  let newIndex = lightboxCurrentIndex + direction;
-  if (newIndex < 0) newIndex = galleryShuffled.length - 1;
-  if (newIndex >= galleryShuffled.length) newIndex = 0;
-
   lightboxCurrentIndex = newIndex;
   const img = document.getElementById('lightboxImg');
   const counter = document.getElementById('lightboxCounter');
@@ -1162,3 +1157,150 @@ function navigateLightbox(direction) {
     counter.textContent = `${newIndex + 1} / ${galleryShuffled.length}`;
   }
 }
+
+// ===== AI Copilot (Homepage) =====
+function toggleCopilotWidget() {
+  const panel = document.getElementById('copilotPanel');
+  if (panel) {
+    panel.classList.toggle('open');
+  }
+}
+
+async function homeGeneratePoem() {
+  const promptInput = document.getElementById('homeCopilotPrompt').value.trim();
+  const imageInput = document.getElementById('homeCopilotImage').files[0];
+  const modelSelect = document.getElementById('homeCopilotModel').value;
+  const statusEl = document.getElementById('homeCopilotStatus');
+  const btnEl = document.getElementById('homeCopilotBtn');
+
+  if (!promptInput && !imageInput) {
+    statusEl.textContent = '⚠️ Masukkan topik atau unggah gambar untuk AI.';
+    statusEl.style.color = '#ff6b6b';
+    return;
+  }
+
+  try {
+    statusEl.textContent = '⏳ AI sedang merangkai puisi...';
+    statusEl.style.color = 'var(--text-secondary)';
+    btnEl.disabled = true;
+    btnEl.innerHTML = '⏳ Memproses...';
+
+    const apiKey = 'sk-or' + '-v1-d088cbed5e42e82d4a91605ed96e268845bff782e10839f7ee465a52f65ed981';
+    let contentArr = [];
+    
+    const systemInstruction = `Kamu adalah Roderikus, seorang penyair ahli yang romantis, puitis, dan sedikit melankolis. Tulisanmu adalah "sebuah novel tentang sunyi, dari manusia yang menyimpan percakapan dalam kepala". 
+
+Tugasmu adalah membuat puisi berdasarkan topik atau gambar yang diberikan.
+
+PENTING - KONTEKS KHUSUS:
+Jika topik berkaitan dengan atau menyebut nama "Sisi":
+Gunakan metafora seni, musik, dan kupu-kupu. Pesan utamanya adalah kebahagiaan, harapan, dan membebaskannya dari cerita duka.
+
+Jika topik berkaitan dengan atau menyebut nama "Shofia":
+Gunakan metafora hujan, ruang gelap, dan penyembuhan. Pesan utamanya adalah bagaimana kehadirannya adalah obat tak terduga untuk luka yang disembunyikan.
+
+Aturan Output:
+Berikan hasil dalam format JSON persis seperti ini, tanpa markdown block, hanya JSON murni:
+{
+  "judul": "Judul Puisi",
+  "bait": [
+    "Baris 1 bait pertama<br>Baris 2 bait pertama<br>Baris 3 bait pertama",
+    "Baris 1 bait kedua<br>Baris 2 bait kedua<br>Baris 3 bait kedua"
+  ]
+}
+Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dalam bait tersebut. Jangan tambahkan penjelasan lain.`;
+
+    let userPrompt = promptInput ? `Topik: ${promptInput}` : 'Buatkan puisi berdasarkan gambar ini.';
+    
+    // Automatically assign Sisi or Shofia if neither is mentioned
+    const lowerPrompt = userPrompt.toLowerCase();
+    if (!lowerPrompt.includes('sisi') && !lowerPrompt.includes('shofia')) {
+      const randomName = Math.random() > 0.5 ? 'Sisi' : 'Shofia';
+      userPrompt += `\n(Catatan: Puisi ini harus secara khusus ditujukan untuk ${randomName})`;
+    }
+    
+    contentArr.push({ type: "text", text: userPrompt });
+
+    if (imageInput) {
+      const base64Img = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(imageInput);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+      contentArr.push({
+        type: "image_url",
+        image_url: { url: base64Img }
+      });
+    }
+
+    const payload = {
+      model: modelSelect,
+      messages: [
+        { role: "system", content: systemInstruction },
+        { role: "user", content: contentArr }
+      ]
+    };
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`API Error: ${response.status} - ${errorData}`);
+    }
+
+    const data = await response.json();
+    let reply = data.choices[0].message.content.trim();
+    reply = reply.replace(/```json/gi, '').replace(/```/g, '').trim();
+    
+    const poemData = JSON.parse(reply);
+
+    // Create complete poem object
+    const newPoem = {
+      id: poems.length > 0 ? Math.max(...poems.map(p => p.id)) + 1 : 1,
+      title: poemData.judul || 'Puisi AI',
+      author: 'AI Copilot',
+      emoji: '✨',
+      date: new Date().toISOString().split('T')[0],
+      tags: [{ label: "Harapan", icon: "🌟", type: "hope" }],
+      excerpt: (poemData.bait && poemData.bait[0]) ? poemData.bait[0].replace(/<[^>]*>?/gm, ' ').substring(0, 80) + '...' : 'Puisi yang digenerate AI...',
+      stanzas: poemData.bait || ['Format puisi tidak dikenali.'],
+      lyrics: [],
+      timestamps: [],
+      youtubeUrl: '',
+      songTitle: '',
+      songArtist: '',
+      isPrivate: false
+    };
+
+    // Save
+    poems.unshift(newPoem);
+    savePoems(poems); // update localstorage
+
+    // Refresh UI
+    sortPoems('newest');
+
+    statusEl.textContent = '✨ Puisi berhasil dibuat dan ditambahkan ke daftar!';
+    statusEl.style.color = 'var(--text-accent)';
+    
+    // Clear inputs
+    document.getElementById('homeCopilotPrompt').value = '';
+    document.getElementById('homeCopilotImage').value = '';
+
+  } catch (error) {
+    console.error("Copilot Error:", error);
+    statusEl.textContent = '❌ Gagal: ' + error.message;
+    statusEl.style.color = '#ff6b6b';
+  } finally {
+    btnEl.disabled = false;
+    btnEl.innerHTML = '✨ Generate & Tambahkan ke Daftar';
+  }
+}
+

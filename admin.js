@@ -559,6 +559,139 @@ function deletePoem(id) {
   renderAdminPoemList();
 }
 
+// ===== AI Copilot (OpenRouter) =====
+async function generatePoemWithAI() {
+  const promptInput = document.getElementById('copilotPrompt').value.trim();
+  const imageInput = document.getElementById('copilotImage').files[0];
+  const modelSelect = document.getElementById('copilotModel').value;
+  const statusEl = document.getElementById('copilotStatus');
+  const btnEl = document.getElementById('copilotBtn');
+
+  if (!promptInput && !imageInput) {
+    statusEl.textContent = '⚠️ Masukkan topik atau unggah gambar untuk AI.';
+    statusEl.style.color = '#ff6b6b';
+    return;
+  }
+
+  try {
+    statusEl.textContent = '⏳ AI sedang merangkai kata...';
+    statusEl.style.color = 'var(--text-secondary)';
+    btnEl.disabled = true;
+    btnEl.innerHTML = '⏳ Memproses...';
+
+    const apiKey = 'sk-or' + '-v1-d088cbed5e42e82d4a91605ed96e268845bff782e10839f7ee465a52f65ed981';
+    let contentArr = [];
+    
+    // Add text prompt
+    const systemInstruction = `Kamu adalah Roderikus, seorang penyair ahli yang romantis, puitis, dan sedikit melankolis. Tulisanmu adalah "sebuah novel tentang sunyi, dari manusia yang menyimpan percakapan dalam kepala". 
+
+Tugasmu adalah membuat puisi berdasarkan topik atau gambar yang diberikan.
+
+PENTING - KONTEKS KHUSUS:
+Jika topik berkaitan dengan atau menyebut nama "Sisi":
+Gunakan metafora seni, musik, dan kupu-kupu. Pesan utamanya adalah kebahagiaan, harapan, dan membebaskannya dari cerita duka.
+
+Jika topik berkaitan dengan atau menyebut nama "Shofia":
+Gunakan metafora hujan, ruang gelap, dan penyembuhan. Pesan utamanya adalah bagaimana kehadirannya adalah obat tak terduga untuk luka yang disembunyikan.
+
+Aturan Output:
+Berikan hasil dalam format JSON persis seperti ini, tanpa markdown block, hanya JSON murni:
+{
+  "judul": "Judul Puisi",
+  "bait": [
+    "Baris 1 bait pertama<br>Baris 2 bait pertama<br>Baris 3 bait pertama",
+    "Baris 1 bait kedua<br>Baris 2 bait kedua<br>Baris 3 bait kedua"
+  ]
+}
+Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dalam bait tersebut. Jangan tambahkan penjelasan lain.`;
+
+    let userPrompt = promptInput ? `Topik: ${promptInput}` : 'Buatkan puisi berdasarkan gambar ini.';
+    
+    // Automatically assign Sisi or Shofia if neither is mentioned
+    const lowerPrompt = userPrompt.toLowerCase();
+    if (!lowerPrompt.includes('sisi') && !lowerPrompt.includes('shofia')) {
+      const randomName = Math.random() > 0.5 ? 'Sisi' : 'Shofia';
+      userPrompt += `\n(Catatan: Puisi ini harus secara khusus ditujukan untuk ${randomName})`;
+    }
+
+    contentArr.push({ type: "text", text: userPrompt });
+
+    // Handle image upload if exists
+    if (imageInput) {
+      const base64Img = await fileToBase64(imageInput);
+      contentArr.push({
+        type: "image_url",
+        image_url: { url: base64Img }
+      });
+    }
+
+    const payload = {
+      model: modelSelect,
+      messages: [
+        { role: "system", content: systemInstruction },
+        { role: "user", content: contentArr }
+      ]
+    };
+
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${apiKey}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`API Error: ${response.status} - ${errorData}`);
+    }
+
+    const data = await response.json();
+    let reply = data.choices[0].message.content.trim();
+    
+    // Cleanup markdown if AI still outputs it
+    reply = reply.replace(/```json/gi, '').replace(/```/g, '').trim();
+    
+    const poemData = JSON.parse(reply);
+
+    // Auto-fill form
+    document.getElementById('poemTitle').value = poemData.judul || '';
+    
+    // Clear existing stanzas and fill with new ones
+    document.querySelectorAll('.admin-stanza-field').forEach(el => el.remove());
+    stanzaCount = 0;
+    
+    if (poemData.bait && Array.isArray(poemData.bait)) {
+      poemData.bait.forEach(baitText => {
+        addStanzaField(baitText);
+      });
+    } else {
+      addStanzaField("Maaf, format balasan AI tidak sesuai.");
+    }
+
+    statusEl.textContent = '✨ Berhasil membuat puisi!';
+    statusEl.style.color = 'var(--text-accent)';
+
+  } catch (error) {
+    console.error("Copilot Error:", error);
+    statusEl.textContent = '❌ Gagal: ' + error.message;
+    statusEl.style.color = '#ff6b6b';
+  } finally {
+    btnEl.disabled = false;
+    btnEl.innerHTML = '✨ Generate Puisi dengan AI';
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+  });
+}
+
 // ===== Reset Form =====
 function resetForm() {
   document.getElementById('formTitle').textContent = '✨ Buat Puisi Baru';

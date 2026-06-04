@@ -93,6 +93,38 @@
 
           <input type="hidden" id="editPoemId" value="">
 
+          <!-- AI Copilot Section -->
+          <div class="admin-copilot-card">
+            <h3 class="admin-copilot-title">🤖 AI Copilot</h3>
+            <p class="admin-copilot-desc">Biarkan AI membantu membuat puisi berdasarkan topik dan gambar.</p>
+            
+            <div class="admin-field">
+              <label class="admin-label">Topik atau Prompt</label>
+              <textarea class="admin-input" id="copilotPrompt" rows="2" placeholder="Contoh: Puisi tentang rindu di kala hujan turun..."></textarea>
+            </div>
+            
+            <div class="admin-field">
+              <label class="admin-label">Pilih Model AI</label>
+              <select class="admin-input admin-select" id="copilotModel">
+              <option value="nvidia/nemotron-nano-12b-v2-vl:free">Nemotron 12B Vision (Free)</option>
+              <option value="google/gemma-4-26b-a4b-it:free">Gemma 4 26B Vision (Free)</option>
+              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Hanya Teks)</option>
+            </select>
+            </div>
+
+            <div class="admin-field">
+              <label class="admin-label">Unggah Gambar (Opsional)</label>
+              <input type="file" id="copilotImage" accept="image/*" class="admin-input" style="padding: 10px;">
+            </div>
+
+            <button type="button" class="admin-primary-btn copilot-btn" id="copilotBtn" onclick="generatePoemWithAI()">
+              ✨ Generate Puisi dengan AI
+            </button>
+            <div class="copilot-status" id="copilotStatus"></div>
+          </div>
+          
+          <div class="admin-divider"></div>
+
           <div class="admin-field">
             <label class="admin-label">Judul Puisi</label>
             <input type="text" class="admin-input" id="poemTitle" placeholder="Masukkan judul puisi...">

@@ -203,6 +203,7 @@
 
   <!-- Sort & Filter Bar -->
   <div class="container">
+
     <div class="home-toolbar" id="homeToolbar">
       <div class="toolbar-left">
         <span class="toolbar-label">📚 Semua Puisi</span>
@@ -289,6 +290,52 @@
   <!-- Persistent Hidden Background YouTube Player -->
   <div id="ytContainer" style="position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;overflow:hidden;">
     <div id="ytPlayer"></div>
+  </div>
+
+  <!-- Floating AI Copilot Widget -->
+  <div class="copilot-widget-container" id="copilotWidgetContainer">
+    <!-- Floating Button -->
+    <button class="copilot-fab" id="copilotFab" onclick="toggleCopilotWidget()">
+      <span class="fab-icon">🤖</span>
+      <span class="fab-text">AI Copilot</span>
+    </button>
+
+    <!-- Widget Panel -->
+    <div class="copilot-panel" id="copilotPanel">
+      <div class="copilot-panel-header">
+        <div class="copilot-header-title">
+          <span class="copilot-header-icon">✨</span>
+          <h3>AI Copilot</h3>
+        </div>
+        <button class="copilot-close-btn" onclick="toggleCopilotWidget()">✕</button>
+      </div>
+      
+      <div class="copilot-panel-body">
+        <p class="copilot-panel-desc">Biarkan AI merangkai puisi indah untukmu secara otomatis.</p>
+        
+        <div class="admin-field">
+          <textarea class="admin-input" id="homeCopilotPrompt" rows="3" placeholder="Tuliskan topik... (misal: Hujan di bulan Juni)"></textarea>
+        </div>
+        
+        <div class="admin-field-row" style="margin-bottom: 15px; display: flex; gap: 10px;">
+          <div class="admin-field" style="flex: 1; margin-bottom: 0;">
+            <select class="admin-input admin-select" id="homeCopilotModel" style="height: 100%;">
+              <option value="nvidia/nemotron-nano-12b-v2-vl:free">Nemotron 12B Vision (Free)</option>
+              <option value="google/gemma-4-26b-a4b-it:free">Gemma 4 26B Vision (Free)</option>
+              <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Hanya Teks)</option>
+            </select>
+          </div>
+          <div class="admin-field" style="flex: 1; margin-bottom: 0;">
+            <input type="file" id="homeCopilotImage" accept="image/*" class="admin-input" style="padding: 10px; height: 100%;">
+          </div>
+        </div>
+
+        <button type="button" class="admin-primary-btn copilot-btn" id="homeCopilotBtn" onclick="homeGeneratePoem()">
+          ✨ Generate Puisi
+        </button>
+        <div class="copilot-status" id="homeCopilotStatus"></div>
+      </div>
+    </div>
   </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
