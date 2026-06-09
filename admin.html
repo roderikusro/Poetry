@@ -106,7 +106,8 @@
             <div class="admin-field" style="flex: 1;">
               <label class="admin-label">Pilih Model</label>
               <select class="admin-input admin-select" id="copilotModel">
-                <option value="openrouter/auto">Owl Alpha (Default)</option>
+                <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+                <option value="openrouter/auto" selected>Owl Alpha (Default)</option>
                 <option value="google/gemma-4-26b-a4b-it:free">Gemma 4 26B Vision (Free)</option>
                 <option value="meta-llama/llama-3.3-70b-instruct:free">Llama 3.3 70B (Hanya Teks)</option>
               </select>
@@ -301,6 +302,7 @@
 
 
   <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="env.js" defer></script>
   <script src="data.js?v=1.5.0" defer></script>
   <script src="admin.js?v=1.5.0" defer></script>
 </body>

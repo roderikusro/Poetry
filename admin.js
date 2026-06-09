@@ -578,7 +578,10 @@ async function generatePoemWithAI() {
     btnEl.disabled = true;
     btnEl.innerHTML = '⏳ Memproses...';
 
-    const apiKey = 'sk-or' + '-v1-d088cbed5e42e82d4a91605ed96e268845bff782e10839f7ee465a52f65ed981';
+    const apiKey = typeof ENV !== 'undefined' ? ENV.API_KEY : '';
+    if (!apiKey) {
+      throw new Error('API Key tidak ditemukan. Pastikan file env.js sudah dikonfigurasi.');
+    }
     let contentArr = [];
     
     // Add text prompt
@@ -622,12 +625,11 @@ Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dal
     const payload = {
       model: modelSelect,
       messages: [
-        { role: "system", content: systemInstruction },
-        { role: "user", content: contentArr }
+        { role: "user", content: systemInstruction + "\n\nTopik:\n" + userPrompt }
       ]
     };
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    const response = await fetch("https://agentrouter.org/v1/chat/completions", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${apiKey}`,
