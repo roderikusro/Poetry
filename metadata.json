@@ -1,0 +1,6 @@
+{
+  "name": "Midnight Garden",
+  "description": "Situs interaktif personal bertema taman bunga malam untuk menyampaikan apresiasi kepada seorang teman.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
