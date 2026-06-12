@@ -5,6 +5,7 @@
   --color-surface-dim: #0f1321;
   --color-glow-lavender: rgba(184, 166, 255, 0.4);
   --color-glow-gold: rgba(255, 243, 176, 0.3);
+  --color-glow-blue: rgba(56, 189, 248, 0.35);
   --color-starlight: #FFFFFF;
   --color-mist: #D8D8D8;
 
@@ -78,6 +79,16 @@ html, body {
 @keyframes moon-pulse {
     0%, 100% { box-shadow: 0 0 60px rgba(255, 243, 176, 0.4); }
     50% { box-shadow: 0 0 85px rgba(255, 243, 176, 0.65); }
+}
+
+.earth-glow {
+    box-shadow: 0 0 60px rgba(56, 189, 248, 0.4);
+    animation: earth-pulse 4s ease-in-out infinite;
+}
+
+@keyframes earth-pulse {
+    0%, 100% { box-shadow: 0 0 60px rgba(56, 189, 248, 0.4); }
+    50% { box-shadow: 0 0 85px rgba(56, 189, 248, 0.7); }
 }
 
 .glass-panel {

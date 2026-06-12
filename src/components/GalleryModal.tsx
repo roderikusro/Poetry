@@ -100,6 +100,26 @@ export default function GalleryModal({ showToast }: GalleryModalProps) {
     // Pick 9 random photos
     const collagePhotos = [...photos].sort(() => Math.random() - 0.5).slice(0, 9);
 
+    // Promise preloader to ensure html2canvas renders background and photos properly
+    const preloadImage = (src: string): Promise<void> => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve();
+        img.onerror = () => resolve(); // Resolve anyway to avoid blocking
+      });
+    };
+
+    // Preload background and all photos
+    try {
+      await Promise.all([
+        preloadImage("/HDR_background.webp"),
+        ...collagePhotos.map(p => preloadImage(p.src))
+      ]);
+    } catch (e) {
+      console.warn("Preloading images encountered an issue:", e);
+    }
+
     const tempDiv = document.createElement("div");
     tempDiv.style.position = "absolute";
     tempDiv.style.left = "-9999px";
@@ -110,47 +130,48 @@ export default function GalleryModal({ showToast }: GalleryModalProps) {
     tempDiv.style.maxWidth = "1080px";
     tempDiv.style.minHeight = "1350px";
     tempDiv.style.maxHeight = "1350px";
-    tempDiv.style.backgroundImage = "url('/BG_kolase.webp')";
-    tempDiv.style.backgroundSize = "1080px 1350px";
-    tempDiv.style.backgroundPosition = "center";
     tempDiv.style.overflow = "hidden";
     tempDiv.style.boxSizing = "border-box";
+    tempDiv.style.backgroundColor = "#030712";
 
     // Build the Polaroid markup
     const polaroidsHTML = collagePhotos.map((p, idx) => {
-      // Define coordinates inside a 1080x1350 canvas
+      // Define coordinates inside a 1080x1350 canvas for a tightly packed, overlapping look without empty bottom space
       const positions = [
-        { left: 100, top: 120 },
-        { left: 420, top: 90 },
-        { left: 730, top: 150 },
-        { left: 80, top: 520 },
-        { left: 400, top: 480 },
-        { left: 710, top: 560 },
-        { left: 120, top: 910 },
-        { left: 430, top: 870 },
-        { left: 740, top: 930 }
+        { left: 70, top: 60 },
+        { left: 380, top: 40 },
+        { left: 690, top: 70 },
+        { left: 45, top: 460 },
+        { left: 375, top: 440 },
+        { left: 695, top: 450 },
+        { left: 80, top: 865 },
+        { left: 385, top: 850 },
+        { left: 690, top: 860 }
       ];
       
       const pos = positions[idx];
-      const left = pos.left + (Math.sin(idx * 1.7) * 40);
-      const top = pos.top + (Math.cos(idx * 2.3) * 40);
+      const left = pos.left + (Math.sin(idx * 1.7) * 20);
+      const top = pos.top + (Math.cos(idx * 2.3) * 20);
       const rotate = p.rotation;
 
-      // Tape or pin styling matching vintage theme
+      // Every image uses vertical ratio (350px image height)
+      const imageHeight = 350;
+
+      // Tape or pin styling matching celestial/midnight theme (no glow shadows)
       let decorHTML = "";
       if (p.decor === "pin") {
         decorHTML = `
           <div style="
             position: absolute;
-            top: -12px;
+            top: -8px;
             left: 50%;
             transform: translateX(-50%);
-            width: 14px;
-            height: 14px;
-            background: linear-gradient(135deg, #d2c888, #f5d061);
-            border: 1px solid rgba(255,255,255,0.4);
+            width: 12px;
+            height: 12px;
+            background: linear-gradient(135deg, #ffffff, #efe4a2, #d2c888);
+            border: 1px solid rgba(255,255,255,0.6);
             border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
             z-index: 10;
           "></div>
         `;
@@ -158,51 +179,56 @@ export default function GalleryModal({ showToast }: GalleryModalProps) {
         decorHTML = `
           <div style="
             position: absolute;
-            top: -18px;
+            top: -14px;
             left: 50%;
             transform: translateX(-50%) rotate(${(Math.sin(idx) * 8)}deg);
             width: 70px;
-            height: 20px;
-            background: rgba(250, 246, 238, 0.25);
-            backdrop-filter: blur(1px);
-            border-left: 1px dashed rgba(210, 200, 136, 0.3);
-            border-right: 1px dashed rgba(210, 200, 136, 0.3);
+            height: 18px;
+            background: rgba(255, 255, 255, 0.15);
+            border-left: 1px dashed rgba(255,255,255,0.4);
+            border-right: 1px dashed rgba(255,255,255,0.4);
             z-index: 10;
           "></div>
         `;
       }
 
+      // Note: z-index: 10 on the container makes sure the photo cards sit on top of the background gradient overlay (z-index: 1)
       return `
         <div style="
           position: absolute;
           left: ${left}px;
           top: ${top}px;
           transform: rotate(${rotate}deg);
-          width: 250px;
-          background: #FAF6EE;
-          padding: 12px 12px 30px 12px;
-          box-shadow: 0 10px 25px rgba(0,0,0,0.4);
-          border: 1px solid rgba(210, 200, 136, 0.15);
+          width: 310px;
+          background: linear-gradient(180deg, #171b2a 0%, #0a0d1c 100%);
+          padding: 15px 15px 35px 15px;
+          box-shadow: 0 12px 30px rgba(0,0,0,0.6);
+          border: 1.5px solid rgba(210, 200, 136, 0.25);
+          border-radius: 8px;
           box-sizing: border-box;
+          z-index: 10;
         ">
           ${decorHTML}
           <div style="
             width: 100%;
-            height: 210px;
+            height: ${imageHeight}px;
             overflow: hidden;
-            background-color: #1e1e1e;
+            background-color: #0d1b3d;
             background-image: url('${p.src}');
             background-size: cover;
             background-position: center;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
           ">
           </div>
           <div style="
-            margin-top: 15px;
+            margin-top: 18px;
             font-family: 'Caveat', 'Dancing Script', cursive, serif;
-            font-size: 15px;
-            color: #5d4037;
+            font-size: 18px;
+            color: #d2c888;
             font-weight: 600;
             text-align: center;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
           ">
             ✦ Kenangan Indah #${idx + 1} ✦
           </div>
@@ -210,30 +236,92 @@ export default function GalleryModal({ showToast }: GalleryModalProps) {
       `;
     }).join("");
 
+    // Generate 60 random sparkling stars (no glow effects, just clean opacity)
+    let starsHTML = "";
+    for (let i = 0; i < 60; i++) {
+      const starLeft = Math.random() * 100;
+      const starTop = Math.random() * 100;
+      const starSize = Math.random() * 2.5 + 1; // 1px to 3.5px
+      const starOpacity = Math.random() * 0.8 + 0.2;
+      const isGold = Math.random() > 0.7;
+      const color = isGold ? "#efe4a2" : "#ffffff";
+      
+      starsHTML += `
+        <div style="
+          position: absolute;
+          left: ${starLeft}%;
+          top: ${starTop}%;
+          width: ${starSize}px;
+          height: ${starSize}px;
+          border-radius: 50%;
+          background-color: ${color};
+          opacity: ${starOpacity};
+          pointer-events: none;
+          z-index: 2;
+        "></div>
+      `;
+    }
+
+    // Crisp 4-point SVG stars for galaxy constellations (no drop-shadow glows)
+    const svgStarsHTML = `
+      <svg style="position: absolute; left: 160px; top: 120px; width: 18px; height: 18px; fill: #efe4a2; opacity: 0.8; z-index: 2;" viewBox="0 0 24 24">
+        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+      </svg>
+      <svg style="position: absolute; right: 140px; top: 350px; width: 22px; height: 22px; fill: #ffffff; opacity: 0.9; z-index: 2;" viewBox="0 0 24 24">
+        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+      </svg>
+      <svg style="position: absolute; left: 110px; top: 780px; width: 16px; height: 16px; fill: #efe4a2; opacity: 0.75; z-index: 2;" viewBox="0 0 24 24">
+        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+      </svg>
+      <svg style="position: absolute; left: 540px; top: 580px; width: 20px; height: 20px; fill: #ffffff; opacity: 0.8; z-index: 2;" viewBox="0 0 24 24">
+        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+      </svg>
+      <svg style="position: absolute; right: 180px; top: 890px; width: 18px; height: 18px; fill: #efe4a2; opacity: 0.7; z-index: 2;" viewBox="0 0 24 24">
+        <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+      </svg>
+    `;
+
     tempDiv.innerHTML = `
-      <!-- Overlay vignette -->
+      <!-- Galaxy Background Image (Rendered as <img> to ensure html2canvas compatibility) -->
+      <img src="/HDR_background.webp" style="
+        position: absolute;
+        inset: 0;
+        width: 1080px;
+        height: 1350px;
+        object-fit: cover;
+        z-index: 0;
+      " />
+
+      <!-- Ambient dark-blue/violet gradient overlay representing outer space -->
       <div style="
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.5) 100%);
+        background: radial-gradient(circle at 50% 50%, rgba(13, 27, 61, 0.45) 0%, rgba(3, 7, 18, 0.98) 100%);
         pointer-events: none;
+        z-index: 1;
       "></div>
+
+      <!-- Render background stars -->
+      ${starsHTML}
+      ${svgStarsHTML}
 
       <!-- Render Polaroid Items -->
       ${polaroidsHTML}
 
-      <!-- Watermark / Footer -->
+      <!-- Watermark / Footer (Positioned cleanly at the bottom on top of overlapping cards) -->
       <div style="
         position: absolute;
-        bottom: 30px;
+        bottom: 20px;
         left: 50%;
         transform: translateX(-50%);
         font-family: 'Inter', sans-serif;
-        font-size: 12px;
-        letter-spacing: 0.25em;
-        color: #d2c888;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0.35em;
+        color: #efe4a2;
+        text-shadow: 0 2px 5px rgba(0,0,0,0.95);
         text-transform: uppercase;
+        z-index: 20;
       ">
         Roderikus Poetry · Kolase Kenangan Abadi
       </div>
@@ -245,8 +333,8 @@ export default function GalleryModal({ showToast }: GalleryModalProps) {
       const canvas = await html2canvas(tempDiv, {
         width: 1080,
         height: 1350,
-        backgroundColor: null,
-        scale: 1, // Fixed to 1 to prevent device-pixel-ratio warping
+        backgroundColor: "#030712",
+        scale: 2, // Scale to 2x for ultra-sharp high-definition output (2160x2700)
         useCORS: true
       });
       const dataUrl = canvas.toDataURL("image/png");
@@ -293,25 +381,50 @@ export default function GalleryModal({ showToast }: GalleryModalProps) {
       </div>
 
       {/* Messy Polaroid Grid */}
-      <div className="relative min-h-[400px] bg-stone-950/25 border border-white/5 rounded-2xl p-6 md:p-10 shadow-inner overflow-hidden mb-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 justify-items-center items-center">
+      <div className="relative min-h-[400px] bg-stone-950/45 border border-white/5 rounded-2xl p-6 md:p-10 shadow-inner overflow-hidden mb-6">
+        
+        {/* Background galaxy-like sparkles & stars in preview container */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-60 z-0">
+          {/* Sparkles */}
+          <div className="absolute top-10 left-[12%] w-1.5 h-1.5 bg-white rounded-full" />
+          <div className="absolute top-[35%] right-[18%] w-1 h-1 bg-[#efe4a2] rounded-full" />
+          <div className="absolute bottom-24 left-[22%] w-1 h-1 bg-white rounded-full" />
+          <div className="absolute top-[65%] left-[8%] w-1.5 h-1.5 bg-[#d3c6ff] rounded-full" />
+          <div className="absolute bottom-12 right-[30%] w-1 h-1 bg-white rounded-full" />
+          
+          {/* Four-point stars */}
+          <svg className="absolute left-[30%] top-8 w-4 h-4 fill-secondary/40" viewBox="0 0 24 24">
+            <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+          </svg>
+          <svg className="absolute right-[25%] bottom-20 w-5 h-5 fill-white/30" viewBox="0 0 24 24">
+            <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+          </svg>
+          <svg className="absolute left-[50%] top-[45%] w-3 h-3 fill-secondary/30" viewBox="0 0 24 24">
+            <path d="M12 0L14.6 9.4L24 12L14.6 14.6L12 24L9.4 14.6L0 12L9.4 9.4Z" />
+          </svg>
+        </div>
+
+        <div className="relative grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 justify-items-center items-center z-10">
           {visiblePhotos.map((photo, index) => {
             let decorElement = null;
             if (photo.decor === "pin") {
               decorElement = (
-                <div className="absolute top-[-10px] left-1/2 transform -translate-x-1/2 w-3.5 h-3.5 bg-gradient-to-br from-[#d2c888] to-[#f5d061] border border-white/20 rounded-full shadow-[0_2px_4px_rgba(0,0,0,0.3)] z-10" />
+                <div className="absolute top-[-8px] left-1/2 transform -translate-x-1/2 w-3 h-3 bg-gradient-to-br from-white via-secondary to-[#f5d061] border border-white/40 rounded-full shadow-[0_1px_2px_rgba(0,0,0,0.4)] z-10" />
               );
             } else if (photo.decor === "tape") {
               decorElement = (
                 <div 
-                  className="absolute top-[-16px] left-1/2 transform -translate-x-1/2 w-16 h-5 bg-[#FAF6EE]/20 backdrop-blur-[1px] border-l border-r border-dashed border-[#d2c888]/30 z-10"
+                  className="absolute top-[-14px] left-1/2 transform -translate-x-1/2 w-14 h-4 bg-white/15 border-l border-r border-dashed border-white/30 z-10"
                   style={{ transform: `translateX(-50%) rotate(${Math.sin(index) * 6}deg)` }}
                 />
               );
             }
 
-            // Map sizes to tailwind width classes
-            const widthClass = photo.size === "sm" ? "w-[130px] sm:w-[150px]" : photo.size === "md" ? "w-[145px] sm:w-[170px]" : "w-[160px] sm:w-[190px]";
+            // Map sizes to tailwind width classes (increased sizes to fill the grid space more)
+            const widthClass = photo.size === "sm" ? "w-[155px] sm:w-[180px]" : photo.size === "md" ? "w-[175px] sm:w-[215px]" : "w-[195px] sm:w-[245px]";
+
+            // Every image uses vertical ratio (aspect-[3/4.2])
+            const aspectClass = "aspect-[3/4.2]";
 
             return (
               <motion.div
@@ -322,26 +435,26 @@ export default function GalleryModal({ showToast }: GalleryModalProps) {
                   scale: 1.08, 
                   rotate: `${photo.rotation * 0.4}deg`, 
                   zIndex: 20,
-                  boxShadow: "0 20px 40px rgba(0,0,0,0.6)"
+                  boxShadow: "0 12px 24px rgba(0,0,0,0.5)"
                 }}
-                className={`relative bg-[#FAF6EE] p-3 pb-8 rounded-sm shadow-xl border border-[#d2c888]/20 cursor-pointer transform transition-all ${widthClass} ${photo.marginClass}`}
+                className={`relative bg-gradient-to-b from-surface-container-low/95 to-surface-container-lowest/98 p-3 pb-8 rounded-md shadow-2xl border border-secondary/20 cursor-pointer transform transition-all hover:border-secondary/50 ${widthClass} ${photo.marginClass}`}
               >
                 {decorElement}
                 
                 {/* Image block */}
-                <div className="aspect-[4/5] bg-stone-900 overflow-hidden rounded-xs">
+                <div className={`w-full ${aspectClass} bg-stone-950 overflow-hidden rounded-xs border border-white/5`}>
                   <img
                     src={photo.src}
                     alt={`Kenangan #${index + 1}`}
                     loading="lazy"
-                    className="w-full h-full object-cover filter brightness-[0.9] hover:brightness-100 transition-all duration-300"
+                    className="w-full h-full object-cover filter brightness-[0.85] hover:brightness-100 hover:scale-105 transition-all duration-500"
                   />
                 </div>
                 
                 {/* Note details */}
                 <div 
                   style={{ fontFamily: "'Caveat', 'Dancing Script', cursive, serif" }}
-                  className="text-center text-[13px] sm:text-sm text-[#5d4037] font-semibold mt-3 overflow-hidden text-ellipsis whitespace-nowrap"
+                  className="text-center text-[14px] sm:text-base text-secondary font-semibold mt-3 overflow-hidden text-ellipsis whitespace-nowrap drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
                 >
                   ✦ Kenangan #{photos.indexOf(photo) + 1} ✦
                 </div>
@@ -397,16 +510,16 @@ export default function GalleryModal({ showToast }: GalleryModalProps) {
               initial={{ scale: 0.96 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.96 }}
-              className="relative max-w-full max-h-[85vh] flex flex-col items-center bg-[#FAF6EE] p-4 pb-12 rounded-sm shadow-2xl z-10 border border-[#d2c888]/20 select-text"
+              className="relative max-w-full max-h-[85vh] flex flex-col items-center bg-gradient-to-b from-surface-container-low to-surface-container-lowest p-4 pb-12 rounded-lg shadow-2xl z-10 border border-secondary/35 select-text"
             >
               <img
                 src={photos[lightboxIndex].src}
                 alt={`Lightbox Kenangan #${lightboxIndex + 1}`}
-                className="max-w-full max-h-[70vh] object-contain rounded-xs"
+                className="max-w-full max-h-[70vh] object-contain rounded-md border border-white/5"
               />
               <div 
                 style={{ fontFamily: "'Caveat', 'Dancing Script', cursive, serif" }}
-                className="text-center text-base md:text-lg text-[#5d4037] mt-4 font-semibold"
+                className="text-center text-lg md:text-xl text-secondary mt-4 font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
               >
                 ✦ Kenangan Abadi #{photos.indexOf(photos[lightboxIndex]) + 1} dari {photos.length} ✦
               </div>

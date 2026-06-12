@@ -753,9 +753,8 @@ export default function App() {
   const musicFloatOpacity = useTransform(smoothScrollProgress, [1.05, 1.25], [1, 0]);
   const indicatorHeight = useTransform(smoothScrollProgress, [0, 2], ["0%", "100%"]);
 
-  // Additional high performance transforms for smoothest 60fps+ animations
-  const moonShadow = useTransform(smoothScrollProgress, (val) => {
-    return `0 0 ${40 + val * 40}px rgba(255, 243, 176, ${0.3 + val * 0.3})`;
+  const earthShadow = useTransform(smoothScrollProgress, (val) => {
+    return `0 0 ${40 + val * 40}px rgba(56, 189, 248, ${0.35 + val * 0.35})`;
   });
   const moonRotate = useTransform(smoothScrollProgress, [0, 2], [0, -30]);
 
@@ -764,6 +763,7 @@ export default function App() {
       ? Math.max(1 - (val - 1.02) * 5, 0)
       : (val > 0.35 ? Math.min((val - 0.35) * 2, 1) : 0);
   });
+
   const starScale = useTransform(smoothScrollProgress, (val) => {
     return val > 1.02
       ? Math.max(1.15 - (val - 1.02) * 3, 0.4)
@@ -1056,20 +1056,20 @@ export default function App() {
             {/* SVG Constellation Connection Lines (Phase 1) */}
             <svg className="absolute left-1/2 top-1/2 w-[600px] h-[600px] -translate-x-1/2 -translate-y-1/2 pointer-events-none z-0 overflow-visible constellation-pulse" viewBox="-300 -300 600 600" style={{ opacity: lineOpacity }}>
               <defs>
-                <filter id="gold-glow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feGaussianBlur stdDeviation="3" result="blur" />
+                <filter id="blue-glow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feGaussianBlur stdDeviation="3.5" result="blur" />
                   <feComposite in="SourceGraphic" in2="blur" operator="over" />
                 </filter>
               </defs>
 
-              <motion.circle cx={centerMoonX} cy={centerMoonY} r={isMobile ? 95 : 158} stroke="rgba(255, 243, 176, 0.05)" strokeWidth="1.5" strokeDasharray="6 8" fill="none" className="animate-spin-slow" />
-              <motion.line x1={centerMoonX} y1={centerMoonY} x2={puisiX} y2={puisiY} stroke="#FFE270" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.65" filter="url(#gold-glow)" />
-              <motion.line x1={centerMoonX} y1={centerMoonY} x2={kenanganX} y2={kenanganY} stroke="#FFE270" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.65" filter="url(#gold-glow)" />
-              <motion.line x1={centerMoonX} y1={centerMoonY} x2={copilotX} y2={copilotY} stroke="#FFE270" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.65" filter="url(#gold-glow)" />
+              <motion.circle cx={centerMoonX} cy={centerMoonY} r={isMobile ? 95 : 158} stroke="rgba(56, 189, 248, 0.08)" strokeWidth="1.5" strokeDasharray="6 8" fill="none" className="animate-spin-slow" />
+              <motion.line x1={centerMoonX} y1={centerMoonY} x2={puisiX} y2={puisiY} stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
+              <motion.line x1={centerMoonX} y1={centerMoonY} x2={kenanganX} y2={kenanganY} stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
+              <motion.line x1={centerMoonX} y1={centerMoonY} x2={copilotX} y2={copilotY} stroke="#06B6D4" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
 
-              <motion.circle cx={puisiX} cy={puisiY} r="3.5" fill="#FFE270" className="animate-ping" />
-              <motion.circle cx={kenanganX} cy={kenanganY} r="3.5" fill="#FFE270" className="animate-ping" />
-              <motion.circle cx={copilotX} cy={copilotY} r="3.5" fill="#6EE7B7" className="animate-ping" />
+              <motion.circle cx={puisiX} cy={puisiY} r="3.5" fill="#38BDF8" className="animate-ping" />
+              <motion.circle cx={kenanganX} cy={kenanganY} r="3.5" fill="#38BDF8" className="animate-ping" />
+              <motion.circle cx={copilotX} cy={copilotY} r="3.5" fill="#22D3EE" className="animate-ping" />
             </svg>
 
             {/* Star Node 1: Bintang Puisi */}
@@ -1144,7 +1144,7 @@ export default function App() {
               </div>
             </motion.button>
 
-            {/* Central Parallax Moon */}
+            {/* Central Parallax Earth */}
             <motion.button
               id="moon-trigger-btn"
               onClick={() => setActiveModal('surat')}
@@ -1154,9 +1154,9 @@ export default function App() {
                 scale: centerMoonScale,
                 x: centerMoonX,
                 y: centerMoonY,
-                boxShadow: moonShadow,
+                boxShadow: earthShadow,
               }}
-              className="group relative w-24 h-24 md:w-32 md:h-32 rounded-full border border-secondary/20 hover:border-secondary cursor-pointer focus:outline-none z-10 flex items-center justify-center overflow-hidden moon-glow bg-stone-950/40"
+              className="group relative w-24 h-24 md:w-32 md:h-32 rounded-full border border-sky-500/30 hover:border-sky-400 cursor-pointer focus:outline-none z-10 flex items-center justify-center overflow-hidden earth-glow bg-stone-950/40"
               aria-label="Buka Surat Rahasia"
             >
               <motion.img
@@ -1168,16 +1168,16 @@ export default function App() {
                   rotate: moonRotate
                 }}
                 transition={{ type: "spring", stiffness: 50, damping: 20 }}
-                src="https://images.unsplash.com/photo-1616712134411-6b6ae89bc3ba?auto=format&fit=crop&q=80&w=600"
-                alt="Bulan Teduh"
-                className="w-[105%] h-[105%] object-cover opacity-90 scale-105 pointer-events-none"
+                src="https://images.unsplash.com/photo-1614730321146-b6fa6a46bcb4?auto=format&fit=crop&q=80&w=600"
+                alt="Bumi Biru"
+                className="w-full h-full object-cover opacity-95 scale-[1.4] pointer-events-none"
               />
               
               <div className="absolute inset-0 bg-gradient-to-t from-deep-navy/35 via-transparent to-transparent pointer-events-none" />
               
               {/* Floating badges on hover */}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-stone-950/45">
-                <span className="text-[9px] md:text-[10px] text-secondary font-bold tracking-widest uppercase font-label-caps bg-deep-navy/80 px-2.5 py-1 rounded-full border border-secondary/20 shadow-md">
+                <span className="text-[9px] md:text-[10px] text-sky-300 font-bold tracking-widest uppercase font-label-caps bg-deep-navy/80 px-2.5 py-1 rounded-full border border-sky-500/20 shadow-md">
                   Surat Rahasia
                 </span>
               </div>
@@ -1331,20 +1331,20 @@ export default function App() {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 0.65, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-28 md:bottom-32 flex flex-col items-center gap-1.5 text-[10px] text-gold-glow tracking-[0.2em] font-sans uppercase pointer-events-none select-none"
+              className="absolute bottom-28 md:bottom-32 flex flex-col items-center gap-1.5 text-[10px] text-glow-blue tracking-[0.2em] font-sans uppercase pointer-events-none select-none"
             >
-              <span className="text-secondary select-none">Menatap Bintang Utama • Scroll lagi untuk playlist</span>
-              <span className="material-symbols-outlined text-xs animate-[bounce_1.5s_infinite]">keyboard_double_arrow_down</span>
+              <span className="text-sky-300 select-none">Menatap Bintang Utama • Scroll lagi untuk playlist</span>
+              <span className="material-symbols-outlined text-xs animate-[bounce_1.5s_infinite] text-sky-400/80">keyboard_double_arrow_down</span>
             </motion.div>
           ) : bannerStep === 2 ? (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 0.65, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-28 md:bottom-32 flex flex-col items-center gap-1.5 text-[10px] text-gold-glow tracking-[0.2em] font-sans uppercase pointer-events-none select-none"
+              className="absolute bottom-28 md:bottom-32 flex flex-col items-center gap-1.5 text-[10px] text-glow-blue tracking-[0.2em] font-sans uppercase pointer-events-none select-none"
             >
-              <span className="text-secondary select-none">Melodi Malam Syahdu • Scroll ke atas untuk kembali</span>
-              <span className="material-symbols-outlined text-xs animate-[bounce_1.5s_infinite_reverse]">keyboard_double_arrow_up</span>
+              <span className="text-sky-300 select-none">Melodi Malam Syahdu • Scroll ke atas untuk kembali</span>
+              <span className="material-symbols-outlined text-xs animate-[bounce_1.5s_infinite_reverse] text-sky-400/80">keyboard_double_arrow_up</span>
             </motion.div>
           ) : null}
         </AnimatePresence>
