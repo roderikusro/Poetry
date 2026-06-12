@@ -3,6 +3,7 @@ import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from
 import { getPoems, defaultSongs, getYouTubeId, savePoems } from "./data/poetryData";
 import { memories, compliments } from "./data/gardenData";
 import { Poem, Song } from "./types";
+import * as THREE from "three";
 
 // Import Custom Redesigned Components
 import PoemBrowserModal from "./components/PoemBrowserModal";
@@ -320,6 +321,9 @@ export default function App() {
   // Star trails canvas ref
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  // Three.js 3D Background canvas ref
+  const threeCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
   // Star Trails Canvas Animation
   useEffect(() => {
     if (performanceMode) return;
@@ -515,6 +519,104 @@ export default function App() {
     });
     return () => unsubscribe();
   }, [smoothScrollProgress, isMobile]);
+
+  // Three.js 3D Background Canvas Animation
+  useEffect(() => {
+    if (performanceMode) return;
+
+    const canvas = threeCanvasRef.current;
+    if (!canvas) return;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color("#030712");
+
+    const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(0, 0, 0);
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance",
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    // Create Sphere Geometry
+    const geometry = new THREE.SphereGeometry(500, 60, 40);
+    // Invert the geometry on the x-axis so that the image is not mirrored from the inside
+    geometry.scale(-1, 1, 1);
+
+    // Load Texture
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load("/HDR_background.webp");
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.minFilter = THREE.LinearFilter;
+    texture.generateMipmaps = false;
+
+    const material = new THREE.MeshBasicMaterial({
+      map: texture,
+    });
+
+    const sphere = new THREE.Mesh(geometry, material);
+    scene.add(sphere);
+
+    const clock = new THREE.Clock();
+    let animationFrameId: number;
+
+    // Track mouse coordinates for smooth tilt parallax
+    let mouseX = 0;
+    let mouseY = 0;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+      mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+    };
+
+    const handleResize = () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("resize", handleResize);
+
+    const animate = () => {
+      animationFrameId = requestAnimationFrame(animate);
+
+      const time = clock.getElapsedTime();
+      const scrollVal = smoothScrollProgress.get();
+
+      // Rotation based on scroll progress + auto-rotation
+      sphere.rotation.y = scrollVal * 0.75 + time * 0.015;
+      sphere.rotation.x = scrollVal * 0.15 + Math.sin(time * 0.05) * 0.04;
+
+      // Mouse parallax camera tilt (lerp for smoothing)
+      const targetRotY = mouseX * 0.08;
+      const targetRotX = mouseY * 0.08;
+
+      camera.rotation.y += (targetRotY - camera.rotation.y) * 0.05;
+      camera.rotation.x += (targetRotX - camera.rotation.x) * 0.05;
+
+      renderer.render(scene, camera);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("resize", handleResize);
+      cancelAnimationFrame(animationFrameId);
+
+      // Dispose resources
+      geometry.dispose();
+      material.dispose();
+      texture.dispose();
+      renderer.dispose();
+    };
+  }, [performanceMode, smoothScrollProgress]);
 
   // Touch and Wheel listeners for scroll progress
   useEffect(() => {
@@ -814,10 +916,26 @@ export default function App() {
 
       {/* Floating Animations Backdrop */}
       <div className="absolute inset-0 z-0 select-none pointer-events-none overflow-hidden">
-        {/* Layered High-Performance Gradients */}
-        <motion.div style={{ opacity: bgOpacity1, background: `radial-gradient(circle at 50% 50%, rgba(13, 27, 61, 1) 0%, rgba(3, 7, 18, 1) 100%)` }} className="absolute inset-0" />
-        <motion.div style={{ opacity: bgOpacity2, background: `radial-gradient(circle at 50% 50%, rgba(40, 30, 85, 1) 0%, rgba(2, 4, 12, 1) 100%)` }} className="absolute inset-0" />
-        <motion.div style={{ opacity: bgOpacity3, background: `radial-gradient(circle at ${isMobile ? "50% 30%" : "30% 50%"}, rgba(15, 12, 30, 1) 0%, rgba(1, 3, 8, 1) 100%)` }} className="absolute inset-0" />
+        {performanceMode ? (
+          <>
+            {/* Layered High-Performance Gradients */}
+            <motion.div style={{ opacity: bgOpacity1, background: `radial-gradient(circle at 50% 50%, rgba(13, 27, 61, 1) 0%, rgba(3, 7, 18, 1) 100%)` }} className="absolute inset-0" />
+            <motion.div style={{ opacity: bgOpacity2, background: `radial-gradient(circle at 50% 50%, rgba(40, 30, 85, 1) 0%, rgba(2, 4, 12, 1) 100%)` }} className="absolute inset-0" />
+            <motion.div style={{ opacity: bgOpacity3, background: `radial-gradient(circle at ${isMobile ? "50% 30%" : "30% 50%"}, rgba(15, 12, 30, 1) 0%, rgba(1, 3, 8, 1) 100%)` }} className="absolute inset-0" />
+            
+            <motion.div 
+              style={{ scale: bgImgScale, y: bgImgY }}
+              className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center opacity-30 mix-blend-overlay transform-gpu will-change-transform"
+            />
+
+            <motion.div 
+              style={{ scale: stardustScale, opacity: stardustOpacity, rotate: stardustRotate }}
+              className="absolute inset-0 stardust transform-gpu will-change-transform" 
+            />
+          </>
+        ) : (
+          <canvas ref={threeCanvasRef} className="absolute inset-0 z-0 pointer-events-none w-full h-full object-cover" />
+        )}
         
         {!performanceMode && (
           <>
@@ -841,16 +959,6 @@ export default function App() {
             />
           </>
         )}
-
-        <motion.div 
-          style={{ scale: bgImgScale, y: bgImgY }}
-          className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80&w=2000')] bg-cover bg-center opacity-30 mix-blend-overlay transform-gpu will-change-transform"
-        />
-
-        <motion.div 
-          style={{ scale: stardustScale, opacity: stardustOpacity, rotate: stardustRotate }}
-          className="absolute inset-0 stardust transform-gpu will-change-transform" 
-        />
 
         {showFireflies && !performanceMode && (
           <motion.div 
