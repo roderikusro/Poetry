@@ -4,17 +4,25 @@ import { getPoems, defaultSongs, getYouTubeId, savePoems } from "./data/poetryDa
 import { memories, compliments } from "./data/gardenData";
 import { Poem, Song } from "./types";
 import * as THREE from "three";
+import { parseLrc, getActiveLyricIndex, TimedLyric } from "./data/musicUtils";
 
 // Import Custom Redesigned Components
 import PoemBrowserModal from "./components/PoemBrowserModal";
 import GalleryModal from "./components/GalleryModal";
 import CopilotModal from "./components/CopilotModal";
 import AdminDashboard from "./components/AdminDashboard";
+import StellariumModal from "./components/StellariumModal";
 
 export default function App() {
   // Navigation & Modal State
-  const [activeModal, setActiveModal] = useState<null | 'puisi' | 'surat' | 'kenangan' | 'settings' | 'secret' | 'copilot' | 'admin'>(null);
+  const [activeModal, setActiveModal] = useState<null | 'puisi' | 'surat' | 'kenangan' | 'settings' | 'secret' | 'copilot' | 'admin' | 'stellarium'>(null);
   
+  // Ref to sync activeModal state to background Three.js loop without re-triggering useEffect
+  const activeModalRef = useRef(activeModal);
+  useEffect(() => {
+    activeModalRef.current = activeModal;
+  }, [activeModal]);
+
   // Poetry list state (synced with localStorage)
   const [poemsState, setPoemsState] = useState<Poem[]>(() => getPoems());
 
@@ -67,15 +75,133 @@ export default function App() {
   const [shuffle, setShuffle] = useState(false);
   const [showMusicSidebar, setShowMusicSidebar] = useState(false);
 
+  // Tab State
+  const [activeMusicTab, setActiveMusicTab] = useState<'player' | 'search' | 'lyrics'>('player');
+
+  // Search States
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<Song[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
+
+  // Queue & Favorites States
+  const [customQueue, setCustomQueue] = useState<Song[]>([]);
+  const [favorites, setFavorites] = useState<Song[]>(() => {
+    try {
+      const stored = localStorage.getItem("roderikus_music_favorites");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      return [];
+    }
+  });
+
+  // Lyrics States
+  const [lyricsLines, setLyricsLines] = useState<TimedLyric[]>([]);
+  const [lyricsLoading, setLyricsLoading] = useState(false);
+  const [lyricsError, setLyricsError] = useState<string | null>(null);
+  const [lyricsQueryTrack, setLyricsQueryTrack] = useState("");
+  const [lyricsQueryArtist, setLyricsQueryArtist] = useState("");
+
+  // Helper functions
+  const toggleFavorite = (song: Song) => {
+    const isFav = favorites.some(s => s.youtubeUrl === song.youtubeUrl);
+    let updated;
+    if (isFav) {
+      updated = favorites.filter(s => s.youtubeUrl !== song.youtubeUrl);
+      showToast("Dihapus dari Favorit");
+    } else {
+      updated = [...favorites, song];
+      showToast("Ditambahkan ke Favorit");
+    }
+    setFavorites(updated);
+    localStorage.setItem("roderikus_music_favorites", JSON.stringify(updated));
+  };
+
+  const addToQueue = (song: Song) => {
+    const exists = customQueue.some(s => s.youtubeUrl === song.youtubeUrl);
+    if (!exists) {
+      setCustomQueue(prev => [...prev, song]);
+      showToast("Ditambahkan ke Antrean");
+    } else {
+      showToast("Sudah ada di Antrean");
+    }
+  };
+
+  const removeFromQueue = (index: number) => {
+    setCustomQueue(prev => prev.filter((_, i) => i !== index));
+    showToast("Dihapus dari Antrean");
+  };
+
+  const fetchLyrics = async (title: string, artist: string) => {
+    if (!title) return;
+    setLyricsLoading(true);
+    setLyricsError(null);
+    setLyricsQueryTrack(title);
+    setLyricsQueryArtist(artist);
+    try {
+      const response = await fetch(`/api/lyrics?track=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.syncedLyrics) {
+          setLyricsLines(parseLrc(data.syncedLyrics));
+        } else if (data.plainLyrics) {
+          const lines = data.plainLyrics.split('\n').map((line: string, i: number) => ({
+            time: i * 99999,
+            text: line.trim()
+          })).filter((l: any) => l.text);
+          setLyricsLines(lines);
+        } else {
+          setLyricsLines([]);
+          setLyricsError("Lirik tidak ditemukan");
+        }
+      } else {
+        setLyricsLines([]);
+        setLyricsError("Lirik tidak ditemukan");
+      }
+    } catch (err) {
+      setLyricsLines([]);
+      setLyricsError("Gagal memuat lirik");
+    } finally {
+      setLyricsLoading(false);
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    setSearchLoading(true);
+    setSearchError(null);
+    try {
+      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSearchResults(data);
+      } else {
+        setSearchError("Gagal mencari lagu");
+      }
+    } catch (err) {
+      setSearchError("Terjadi kesalahan jaringan");
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
   // Dynamic Spotify-like Active Playlist
   const activePlaylist = useMemo(() => {
-    const list = [...defaultSongs];
+    let list: Song[] = [];
+    
+    // Add custom queue first
+    customQueue.forEach(song => {
+      list.push(song);
+    });
+
+    // Add poem track if detailed view
     if (activeModal === 'puisi' && poetryView === 'detail') {
       const poem = poemsState[poemIndex];
       if (poem && poem.youtubeUrl && poem.songTitle) {
         const exists = list.some(s => s.youtubeUrl === poem.youtubeUrl);
         if (!exists) {
-          list.unshift({
+          list.push({
             title: poem.songTitle,
             artist: poem.songArtist || "YouTube",
             icon: poem.emoji || "🎵",
@@ -84,8 +210,23 @@ export default function App() {
         }
       }
     }
+
+    // Append favorites
+    favorites.forEach(fav => {
+      if (!list.some(s => s.youtubeUrl === fav.youtubeUrl)) {
+        list.push(fav);
+      }
+    });
+
+    // Append default songs
+    defaultSongs.forEach(song => {
+      if (!list.some(s => s.youtubeUrl === song.youtubeUrl)) {
+        list.push(song);
+      }
+    });
+
     return list;
-  }, [activeModal, poetryView, poemIndex, poemsState]);
+  }, [customQueue, favorites, activeModal, poetryView, poemIndex, poemsState]);
 
   // Set current song track object
   const currentTrack = useMemo(() => {
@@ -94,6 +235,27 @@ export default function App() {
     }
     return activePlaylist[currentTrackIndex] || defaultSongs[0];
   }, [currentTrackIndex, activePlaylist]);
+
+  // Lyric container ref for auto-scrolling
+  const lyricContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // Active lyric index matching the current playback time
+  const activeLyricIndex = useMemo(() => {
+    return getActiveLyricIndex(lyricsLines, currentTime);
+  }, [lyricsLines, currentTime]);
+
+  // Scroll active lyric to center automatically
+  useEffect(() => {
+    if (activeMusicTab === 'lyrics' && lyricContainerRef.current) {
+      const activeEl = lyricContainerRef.current.querySelector('.lyric-line-active');
+      if (activeEl) {
+        activeEl.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }
+    }
+  }, [activeLyricIndex, activeMusicTab]);
 
   // Music active lyric/quote
   const trackQuote = useMemo(() => {
@@ -209,6 +371,28 @@ export default function App() {
     }
     return () => clearInterval(interval);
   }, [isPlaying]);
+
+  // Auto-fetch lyrics when currentTrack changes
+  useEffect(() => {
+    if (currentTrack) {
+      const cleanTitle = currentTrack.title
+        .replace(/\(Official[^\)]*\)/gi, '')
+        .replace(/\[Official[^\)]*\]/gi, '')
+        .replace(/\(Video[^\)]*\)/gi, '')
+        .replace(/\[Video[^\)]*\]/gi, '')
+        .replace(/\(Lyrics[^\)]*\)/gi, '')
+        .replace(/\[Lyrics[^\)]*\]/gi, '')
+        .replace(/\(Audio[^\)]*\)/gi, '')
+        .replace(/\[Audio[^\)]*\]/gi, '')
+        .replace(/\(Official Music Video\)/gi, '')
+        .replace(/&/g, 'and')
+        .trim();
+      fetchLyrics(cleanTitle, currentTrack.artist);
+    } else {
+      setLyricsLines([]);
+    }
+  }, [currentTrack]);
+
 
   // Load video when track index changes
   const playTrack = (index: number, autoplay = true) => {
@@ -586,6 +770,11 @@ export default function App() {
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
 
+      // Pause background rendering if the heavy Stellarium explorer is active
+      if (activeModalRef.current === 'stellarium') {
+        return;
+      }
+
       const time = clock.getElapsedTime();
       const scrollVal = smoothScrollProgress.get();
 
@@ -684,6 +873,9 @@ export default function App() {
 
   const copilotX = 0;
   const copilotY = useTransform(smoothScrollProgress, [1.02, 1.25], [isMobile ? -95 : -158, isMobile ? -95 - 100 : -158 - 100]);
+
+  const stellariumX = 0;
+  const stellariumY = useTransform(smoothScrollProgress, [1.02, 1.25], [isMobile ? 95 : 158, isMobile ? 95 + 100 : 158 + 100]);
 
   // Constellation SVG connection line opacity
   const lineOpacity = useTransform(smoothScrollProgress, (val) => {
@@ -1066,10 +1258,12 @@ export default function App() {
               <motion.line x1={centerMoonX} y1={centerMoonY} x2={puisiX} y2={puisiY} stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
               <motion.line x1={centerMoonX} y1={centerMoonY} x2={kenanganX} y2={kenanganY} stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
               <motion.line x1={centerMoonX} y1={centerMoonY} x2={copilotX} y2={copilotY} stroke="#06B6D4" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
+              <motion.line x1={centerMoonX} y1={centerMoonY} x2={stellariumX} y2={stellariumY} stroke="#d2c888" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
 
               <motion.circle cx={puisiX} cy={puisiY} r="3.5" fill="#38BDF8" className="animate-ping" />
               <motion.circle cx={kenanganX} cy={kenanganY} r="3.5" fill="#38BDF8" className="animate-ping" />
               <motion.circle cx={copilotX} cy={copilotY} r="3.5" fill="#22D3EE" className="animate-ping" />
+              <motion.circle cx={stellariumX} cy={stellariumY} r="3.5" fill="#d2c888" className="animate-ping" />
             </svg>
 
             {/* Star Node 1: Bintang Puisi */}
@@ -1141,6 +1335,28 @@ export default function App() {
               <div className="flex flex-col items-center">
                 <span className="text-[9px] md:text-xs font-semibold tracking-widest text-emerald-200 group-hover:text-emerald-300 transition-colors font-label-caps uppercase">Bintang AI</span>
                 <span className="text-[7px] md:text-[9px] text-mist/60 italic">Copilot Sajak</span>
+              </div>
+            </motion.button>
+
+            {/* Star Node 4: Penjelajah Langit 3D */}
+            <motion.button
+              onClick={() => setActiveModal('stellarium')}
+              style={{
+                opacity: starOpacity,
+                scale: starScale,
+                x: stellariumX,
+                y: stellariumY,
+                pointerEvents: starPointerEvents
+              }}
+              className="absolute z-20 group flex flex-col items-center gap-2 cursor-pointer focus:outline-none"
+              aria-label="Kunjungi Penjelajah Langit"
+            >
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center bg-stone-950/75 border border-secondary/40 text-secondary hover:border-secondary hover:text-white shadow-[0_0_15px_rgba(210,200,136,0.3)] hover:shadow-[0_0_25px_rgba(210,200,136,0.6)] transition-all duration-300">
+                <span className="material-symbols-outlined text-lg md:text-2xl font-fill animate-pulse">explore</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[9px] md:text-xs font-semibold tracking-wider text-starlight group-hover:text-secondary transition-colors font-label-caps uppercase">Langit 3D</span>
+                <span className="text-[7px] md:text-[9px] text-mist/60 italic">Ekplorasi Rasi</span>
               </div>
             </motion.button>
 
@@ -1265,19 +1481,35 @@ export default function App() {
                 </span>
               </button>
 
-              {/* Center: AI Copilot */}
+              {/* Center Left: AI Copilot */}
               <button
                 onClick={() => setActiveModal('copilot')}
                 className="group flex flex-col items-center gap-2 cursor-pointer transition-all duration-500 transform hover:-translate-y-3 focus:outline-none"
                 aria-label="Buka AI Copilot"
               >
                 <div className="bloom-effect text-secondary scale-110 md:scale-115 group-hover:scale-125 drop-shadow-[0_0_15px_rgba(255,243,176,0.3)]">
-                  <span className="material-symbols-outlined text-5xl md:text-6.5xl transition-colors duration-700 group-hover:text-starlight" style={{ fontVariationSettings: "'FILL' 1" }}>
+                  <span className="material-symbols-outlined text-5.5xl md:text-6.5xl transition-colors duration-700 group-hover:text-starlight" style={{ fontVariationSettings: "'FILL' 1" }}>
                     psychology
                   </span>
                 </div>
                 <span className="text-[9px] md:text-xs font-semibold tracking-wider text-mist group-hover:text-secondary transition-all uppercase">
                   AI Copilot
+                </span>
+              </button>
+
+              {/* Center Right: Langit 3D */}
+              <button
+                onClick={() => setActiveModal('stellarium')}
+                className="group flex flex-col items-center gap-2 cursor-pointer transition-all duration-300 transform hover:-translate-y-2 focus:outline-none"
+                aria-label="Buka Penjelajah Langit"
+              >
+                <div className="bloom-effect text-secondary group-hover:scale-110 drop-shadow-[0_0_12px_rgba(255,243,176,0.2)]">
+                  <span className="material-symbols-outlined text-4.5xl md:text-5.5xl transition-colors duration-500 group-hover:text-starlight" style={{ fontVariationSettings: "'FILL' 1" }}>
+                    explore
+                  </span>
+                </div>
+                <span className="text-[9px] md:text-xs font-semibold tracking-wider text-mist group-hover:text-secondary transition-all uppercase">
+                  Langit 3D
                 </span>
               </button>
 
@@ -1606,7 +1838,7 @@ export default function App() {
 
       {/* Global Modals container overlay */}
       <AnimatePresence>
-        {activeModal && (
+        {activeModal && activeModal !== 'stellarium' && (
           <motion.div
             key="modal-overlay"
             initial={{ opacity: 0 }}
@@ -1853,6 +2085,25 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Full screen Stellarium Modal */}
+      <AnimatePresence>
+        {activeModal === 'stellarium' && (
+          <motion.div
+            key="stellarium-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50"
+          >
+            <StellariumModal
+              onClose={() => setActiveModal(null)}
+              showToast={showToast}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Music Sidebar (Left Drawer) */}
       <AnimatePresence>
         {showMusicSidebar && (
@@ -1872,10 +2123,22 @@ export default function App() {
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 28, stiffness: 220 }}
-              className="fixed inset-y-0 left-0 w-80 sm:w-96 bg-stone-950/90 backdrop-blur-2xl border-r border-white/10 z-[60] shadow-2xl flex flex-col p-6 text-left"
+              className="fixed inset-y-0 left-0 w-80 sm:w-96 bg-stone-950/90 backdrop-blur-2xl border-r border-white/10 z-[60] shadow-2xl flex flex-col p-6 text-left overflow-hidden"
             >
+              {/* Dynamic Cover Glow */}
+              <div className="absolute inset-0 -z-10 opacity-20 blur-3xl pointer-events-none transition-all duration-1000">
+                {currentTrack.thumbnail ? (
+                  <div 
+                    className="w-full h-full bg-cover bg-center scale-150 transition-all duration-1000 animate-pulse"
+                    style={{ backgroundImage: `url(${currentTrack.thumbnail})` }}
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-tr from-secondary/35 via-primary/20 to-purple-500/20" />
+                )}
+              </div>
+
               {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-5">
+              <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
                 <div className="flex items-center gap-2">
                   <span className="material-symbols-outlined text-secondary text-2xl font-fill animate-pulse">
                     music_note
@@ -1884,7 +2147,7 @@ export default function App() {
                     <h3 className="font-display text-lg text-starlight font-bold tracking-wide">
                       Simfoni Angkasa
                     </h3>
-                    <p className="text-[9px] text-mist/40 uppercase tracking-widest font-mono">BGM Player</p>
+                    <p className="text-[9px] text-mist/40 uppercase tracking-widest font-mono">Metrolist Web System</p>
                   </div>
                 </div>
                 
@@ -1897,152 +2160,412 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Vinyl Spinner Container */}
-              <div className="flex flex-col items-center justify-center my-3 select-none">
-                <div className="relative w-36 h-36 rounded-full bg-stone-900 border-4 border-stone-800 shadow-2xl flex items-center justify-center overflow-hidden">
-                  {/* Concentric rings of vinyl */}
-                  <div className="absolute inset-1 border border-stone-700/20 rounded-full" />
-                  <div className="absolute inset-2 border border-stone-700/25 rounded-full" />
-                  <div className="absolute inset-3 border border-stone-700/20 rounded-full" />
-                  <div className="absolute inset-5 border border-stone-750/30 rounded-full" />
-                  <div className="absolute inset-8 border border-stone-800/40 rounded-full" />
-                  <div className="absolute inset-12 border border-stone-850/50 rounded-full" />
-                  
-                  {/* Center album art/emoji */}
-                  <motion.div
-                    animate={{ rotate: isPlaying ? 360 : 0 }}
-                    transition={isPlaying ? { repeat: Infinity, duration: 12, ease: "linear" } : {}}
-                    className="w-14 h-14 rounded-full bg-gradient-to-br from-[#d2c888] to-[#f5d061] flex items-center justify-center p-2 shadow-inner z-10"
-                  >
-                    <span className="text-xl select-none">{currentTrack.icon || "🎵"}</span>
-                  </motion.div>
-                  
-                  {/* Vinyl center pinhole */}
-                  <div className="absolute w-2 h-2 rounded-full bg-stone-950 border border-white/20 z-20" />
-                </div>
-
-                {/* Song Meta info */}
-                <div className="text-center mt-4 w-full px-2">
-                  <h4 className="text-sm font-semibold text-starlight tracking-wide truncate">
-                    {currentTrack.title}
-                  </h4>
-                  <p className="text-[11px] text-mist/60 truncate mt-0.5">
-                    {currentTrack.artist}
-                  </p>
-                </div>
-              </div>
-
-              {/* Seeker Slider */}
-              <div className="space-y-1 my-3 font-sans px-2">
-                <input 
-                  type="range"
-                  min="0"
-                  max={duration || 100}
-                  value={currentTime}
-                  onChange={handleProgressBarSeek}
-                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
-                />
-                <div className="flex justify-between text-[9px] text-mist/40">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
-              </div>
-
-              {/* Playback Controls */}
-              <div className="flex items-center justify-center gap-5 my-2">
-                {/* Shuffle Button */}
+              {/* Tabs Navigation */}
+              <div className="flex bg-white/5 rounded-xl p-1 mb-4 text-[10px] font-semibold border border-white/5 tracking-wider uppercase font-mono">
                 <button
-                  onClick={() => setShuffle(!shuffle)}
-                  className={`material-symbols-outlined text-lg cursor-pointer transition-all ${
-                    shuffle ? "text-secondary drop-shadow-[0_0_8px_#d2c888]" : "text-mist/50 hover:text-mist"
+                  onClick={() => setActiveMusicTab('player')}
+                  className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                    activeMusicTab === 'player' ? 'bg-secondary text-stone-950 font-bold shadow-md' : 'text-mist hover:text-starlight'
                   }`}
-                  title="Acak Lagu"
                 >
-                  shuffle
+                  Player
                 </button>
-
-                {/* Prev Button */}
-                <button 
-                  onClick={handlePrevTrack}
-                  className="material-symbols-outlined text-mist hover:text-starlight text-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                  title="Lagu Sebelumnya"
-                >
-                  skip_previous
-                </button>
-
-                {/* Play/Pause Button */}
-                <button 
-                  onClick={togglePlay}
-                  className="material-symbols-outlined text-stone-950 bg-secondary hover:bg-yellow-400 p-3 rounded-full text-xl transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-lg shadow-secondary/25"
-                  title={isPlaying ? "Jeda" : "Putar"}
-                >
-                  {isPlaying ? "pause" : "play_arrow"}
-                </button>
-
-                {/* Next Button */}
-                <button 
-                  onClick={handleNextTrack}
-                  className="material-symbols-outlined text-mist hover:text-starlight text-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                  title="Lagu Berikutnya"
-                >
-                  skip_next
-                </button>
-
-                {/* Volume Mute Button */}
-                <button 
-                  onClick={toggleMute}
-                  className={`material-symbols-outlined text-lg cursor-pointer transition-all ${
-                    isMuted || volume === 0 ? "text-red-400" : "text-mist/50 hover:text-mist"
+                <button
+                  onClick={() => setActiveMusicTab('search')}
+                  className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                    activeMusicTab === 'search' ? 'bg-secondary text-stone-950 font-bold shadow-md' : 'text-mist hover:text-starlight'
                   }`}
-                  title="Bisukan"
                 >
-                  {isMuted || volume === 0 ? "volume_off" : volume < 50 ? "volume_down" : "volume_up"}
+                  Cari Lagu
+                </button>
+                <button
+                  onClick={() => setActiveMusicTab('lyrics')}
+                  className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
+                    activeMusicTab === 'lyrics' ? 'bg-secondary text-stone-950 font-bold shadow-md' : 'text-mist hover:text-starlight'
+                  }`}
+                >
+                  Lirik
                 </button>
               </div>
 
-              {/* Volume Slider */}
-              <div className="flex items-center gap-2 px-6 my-2">
-                <span className="material-symbols-outlined text-xs text-mist/40">volume_down</span>
-                <input 
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={isMuted ? 0 : volume}
-                  onChange={handleVolumeChange}
-                  className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
-                />
-                <span className="material-symbols-outlined text-xs text-mist/40">volume_up</span>
-              </div>
-
-              {/* Playlist items list */}
-              <div className="flex-1 flex flex-col min-h-0 mt-4">
-                <span className="text-[9px] font-semibold tracking-widest text-mist/40 font-label-caps uppercase mb-2 block px-1">
-                  Daftar Lagu Latar
-                </span>
-                
-                <div className="flex-1 overflow-y-auto scrollbar-styled pr-1 space-y-1">
-                  {activePlaylist.map((track, i) => (
-                    <button
-                      key={i}
-                      onClick={() => playTrack(i)}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs flex items-center justify-between gap-2 transition-all ${
-                        currentTrackIndex === i 
-                          ? 'bg-glow-gold/15 text-secondary border-l-2 border-secondary font-semibold' 
-                          : 'hover:bg-white/5 text-mist'
-                      }`}
-                    >
-                      <div className="truncate flex-1">
-                        <p className="truncate font-medium">{track.title}</p>
-                        <p className="truncate font-light text-[9px] opacity-60 mt-0.5">{track.artist}</p>
+              {/* Dynamic Tab Contents */}
+              <div className="flex-1 flex flex-col min-h-0">
+                {activeMusicTab === 'player' && (
+                  <div className="flex-1 flex flex-col min-h-0 justify-between">
+                    {/* Vinyl Spinner Container */}
+                    <div className="flex flex-col items-center justify-center my-2 select-none">
+                      <div className="relative w-36 h-36 rounded-full bg-stone-900 border-4 border-stone-800 shadow-2xl flex items-center justify-center overflow-hidden">
+                        {/* Concentric rings of vinyl */}
+                        <div className="absolute inset-1 border border-stone-700/20 rounded-full" />
+                        <div className="absolute inset-2 border border-stone-700/25 rounded-full" />
+                        <div className="absolute inset-3 border border-stone-700/20 rounded-full" />
+                        <div className="absolute inset-5 border border-stone-750/30 rounded-full" />
+                        <div className="absolute inset-8 border border-stone-800/40 rounded-full" />
+                        <div className="absolute inset-12 border border-stone-850/50 rounded-full" />
+                        
+                        {/* Center album art/emoji */}
+                        <motion.div
+                          animate={{ rotate: isPlaying ? 360 : 0 }}
+                          transition={isPlaying ? { repeat: Infinity, duration: 12, ease: "linear" } : {}}
+                          className="w-14 h-14 rounded-full bg-stone-950 flex items-center justify-center p-0.5 shadow-inner z-10 overflow-hidden border border-white/10"
+                        >
+                          {currentTrack.thumbnail ? (
+                            <img src={currentTrack.thumbnail} alt={currentTrack.title} className="w-full h-full object-cover rounded-full" />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d2c888] to-[#f5d061] flex items-center justify-center">
+                              <span className="text-xl select-none">{currentTrack.icon || "🎵"}</span>
+                            </div>
+                          )}
+                        </motion.div>
+                        
+                        {/* Vinyl center pinhole */}
+                        <div className="absolute w-2 h-2 rounded-full bg-stone-950 border border-white/20 z-20" />
                       </div>
-                      {currentTrackIndex === i && isPlaying && (
-                        <span className="material-symbols-outlined text-xs animate-pulse text-secondary">
-                          graphic_eq
+
+                      {/* Song Meta info */}
+                      <div className="text-center mt-3 w-full px-2">
+                        <h4 className="text-sm font-semibold text-starlight tracking-wide truncate">
+                          {currentTrack.title}
+                        </h4>
+                        <p className="text-[11px] text-mist/60 truncate mt-0.5">
+                          {currentTrack.artist}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Seeker Slider */}
+                    <div className="space-y-1 my-2 font-sans px-2">
+                      <input 
+                        type="range"
+                        min="0"
+                        max={duration || 100}
+                        value={currentTime}
+                        onChange={handleProgressBarSeek}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
+                      />
+                      <div className="flex justify-between text-[9px] text-mist/40">
+                        <span>{formatTime(currentTime)}</span>
+                        <span>{formatTime(duration)}</span>
+                      </div>
+                    </div>
+
+                    {/* Playback Controls */}
+                    <div className="flex items-center justify-center gap-5 my-1">
+                      {/* Shuffle Button */}
+                      <button
+                        onClick={() => setShuffle(!shuffle)}
+                        className={`material-symbols-outlined text-lg cursor-pointer transition-all ${
+                          shuffle ? "text-secondary drop-shadow-[0_0_8px_#d2c888]" : "text-mist/50 hover:text-mist"
+                        }`}
+                        title="Acak Lagu"
+                      >
+                        shuffle
+                      </button>
+
+                      {/* Prev Button */}
+                      <button 
+                        onClick={handlePrevTrack}
+                        className="material-symbols-outlined text-mist hover:text-starlight text-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                        title="Lagu Sebelumnya"
+                      >
+                        skip_previous
+                      </button>
+
+                      {/* Play/Pause Button */}
+                      <button 
+                        onClick={togglePlay}
+                        className="material-symbols-outlined text-stone-950 bg-secondary hover:bg-yellow-400 p-3 rounded-full text-xl transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-lg shadow-secondary/25"
+                        title={isPlaying ? "Jeda" : "Putar"}
+                      >
+                        {isPlaying ? "pause" : "play_arrow"}
+                      </button>
+
+                      {/* Next Button */}
+                      <button 
+                        onClick={handleNextTrack}
+                        className="material-symbols-outlined text-mist hover:text-starlight text-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer"
+                        title="Lagu Berikutnya"
+                      >
+                        skip_next
+                      </button>
+
+                      {/* Volume Mute Button */}
+                      <button 
+                        onClick={toggleMute}
+                        className={`material-symbols-outlined text-lg cursor-pointer transition-all ${
+                          isMuted || volume === 0 ? "text-red-400" : "text-mist/50 hover:text-mist"
+                        }`}
+                        title="Bisukan"
+                      >
+                        {isMuted || volume === 0 ? "volume_off" : volume < 50 ? "volume_down" : "volume_up"}
+                      </button>
+                    </div>
+
+                    {/* Volume Slider */}
+                    <div className="flex items-center gap-2 px-6 my-1">
+                      <span className="material-symbols-outlined text-xs text-mist/40">volume_down</span>
+                      <input 
+                        type="range"
+                        min="0"
+                        max="100"
+                        value={isMuted ? 0 : volume}
+                        onChange={handleVolumeChange}
+                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
+                      />
+                      <span className="material-symbols-outlined text-xs text-mist/40">volume_up</span>
+                    </div>
+
+                    {/* Sub-tab view: Active Playlist & Queue */}
+                    <div className="flex-1 flex flex-col min-h-0 mt-3 border-t border-white/5 pt-3">
+                      <div className="flex items-center justify-between mb-2 px-1">
+                        <span className="text-[9px] font-semibold tracking-widest text-mist/40 font-label-caps uppercase">
+                          Daftar Lagu ({activePlaylist.length})
                         </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
+                        {customQueue.length > 0 && (
+                          <button 
+                            onClick={() => { setCustomQueue([]); showToast("Antrean dibersihkan"); }}
+                            className="text-[8px] uppercase tracking-wider text-red-400/70 hover:text-red-400 font-mono"
+                          >
+                            Hapus Antrean
+                          </button>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 overflow-y-auto scrollbar-styled pr-1 space-y-1">
+                        {activePlaylist.map((track, i) => {
+                          const isFav = favorites.some(f => f.youtubeUrl === track.youtubeUrl);
+                          return (
+                            <div
+                              key={i}
+                              className={`w-full text-left px-3 py-1.5 rounded-xl text-xs flex items-center justify-between gap-2 transition-all ${
+                                currentTrackIndex === i 
+                                  ? 'bg-secondary/10 text-secondary border-l-2 border-secondary font-semibold' 
+                                  : 'hover:bg-white/5 text-mist'
+                              }`}
+                            >
+                              <button
+                                onClick={() => playTrack(i)}
+                                className="truncate flex-1 text-left cursor-pointer"
+                              >
+                                <p className="truncate font-medium">{track.title}</p>
+                                <p className="truncate font-light text-[9px] opacity-60 mt-0.5">
+                                  {track.artist} {customQueue.some(q => q.youtubeUrl === track.youtubeUrl) && <span className="text-[8px] bg-secondary/20 text-secondary px-1 py-0.2 rounded font-mono ml-1">Antrean</span>}
+                                </p>
+                              </button>
+                              
+                              <div className="flex items-center gap-1">
+                                <button 
+                                  onClick={() => toggleFavorite(track)}
+                                  className={`material-symbols-outlined text-[14px] cursor-pointer hover:scale-115 transition-transform ${
+                                    isFav ? 'text-red-400 font-fill' : 'text-mist/30 hover:text-mist'
+                                  }`}
+                                >
+                                  favorite
+                                </button>
+                                {currentTrackIndex === i && isPlaying && (
+                                  <span className="material-symbols-outlined text-xs animate-pulse text-secondary">
+                                    graphic_eq
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {activeMusicTab === 'search' && (
+                  <div className="flex-1 flex flex-col min-h-0">
+                    {/* Search Form */}
+                    <form onSubmit={handleSearch} className="flex gap-2 mb-3">
+                      <input
+                        type="text"
+                        placeholder="Cari judul lagu atau artis..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-starlight placeholder-mist/40 focus:outline-none focus:border-secondary/50 font-sans"
+                      />
+                      <button
+                        type="submit"
+                        disabled={searchLoading}
+                        className="bg-secondary text-stone-950 rounded-xl px-3 py-2 text-xs font-semibold hover:bg-yellow-400 disabled:opacity-50 flex items-center justify-center cursor-pointer shadow-lg shadow-secondary/15"
+                      >
+                        {searchLoading ? (
+                          <div className="w-4 h-4 border-2 border-stone-950 border-t-transparent rounded-full animate-spin" />
+                        ) : (
+                          <span className="material-symbols-outlined text-sm">search</span>
+                        )}
+                      </button>
+                    </form>
+
+                    {/* Search Results */}
+                    {searchError && (
+                      <div className="text-center py-4 text-xs text-red-400/80 font-medium">
+                        {searchError}
+                      </div>
+                    )}
+
+                    {searchResults.length === 0 && !searchLoading && !searchError && (
+                      <div className="text-center py-10 text-xs text-mist/30 font-medium font-sans">
+                        Ketik dan cari lagu kesukaanmu dari YouTube Music.
+                      </div>
+                    )}
+
+                    <div className="flex-1 overflow-y-auto scrollbar-styled pr-1 space-y-1">
+                      {searchResults.map((song, i) => {
+                        const isFav = favorites.some(f => f.youtubeUrl === song.youtubeUrl);
+                        return (
+                          <div 
+                            key={i}
+                            className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-all text-xs border border-transparent hover:border-white/5 gap-2"
+                          >
+                            {/* Song thumbnail/info */}
+                            <div className="flex items-center gap-2 truncate flex-1">
+                              {song.thumbnail ? (
+                                <img src={song.thumbnail} alt={song.title} className="w-9 h-9 object-cover rounded-lg shadow-md shrink-0 border border-white/5" />
+                              ) : (
+                                <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
+                                  <span className="text-sm">🎵</span>
+                                </div>
+                              )}
+                              <div className="truncate">
+                                <h5 className="font-semibold text-starlight truncate">{song.title}</h5>
+                                <p className="text-[10px] text-mist/60 truncate mt-0.5">{song.artist}</p>
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center gap-1 shrink-0">
+                              {/* Play directly */}
+                              <button
+                                onClick={() => {
+                                  // Add to queue and play immediately
+                                  setCustomQueue(prev => {
+                                    const filtered = prev.filter(q => q.youtubeUrl !== song.youtubeUrl);
+                                    return [song, ...filtered];
+                                  });
+                                  setTimeout(() => {
+                                    playTrack(0);
+                                    setActiveMusicTab('player');
+                                  }, 100);
+                                }}
+                                className="material-symbols-outlined text-[18px] text-secondary hover:scale-115 transition-transform cursor-pointer p-1 rounded-full hover:bg-white/10"
+                                title="Putar Sekarang"
+                              >
+                                play_circle
+                              </button>
+                              
+                              {/* Add to queue */}
+                              <button
+                                onClick={() => addToQueue(song)}
+                                className="material-symbols-outlined text-[18px] text-mist/60 hover:text-starlight hover:scale-115 transition-transform cursor-pointer p-1 rounded-full hover:bg-white/10"
+                                title="Tambah ke Antrean"
+                              >
+                                queue_music
+                              </button>
+
+                              {/* Toggle favorite */}
+                              <button
+                                onClick={() => toggleFavorite(song)}
+                                className={`material-symbols-outlined text-[18px] cursor-pointer hover:scale-115 transition-transform p-1 rounded-full hover:bg-white/10 ${
+                                  isFav ? 'text-red-400 font-fill' : 'text-mist/30 hover:text-mist'
+                                }`}
+                                title={isFav ? "Hapus dari Favorit" : "Tambah ke Favorit"}
+                              >
+                                favorite
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {activeMusicTab === 'lyrics' && (
+                  <div className="flex-1 flex flex-col min-h-0">
+                    {/* Manual Lyrics Search Helper if mismatched */}
+                    <div className="bg-white/5 border border-white/5 rounded-xl p-2.5 mb-3 text-xs">
+                      <details className="cursor-pointer group">
+                        <summary className="text-[10px] font-semibold text-mist/50 hover:text-starlight select-none font-mono uppercase flex justify-between items-center">
+                          <span>Cocokkan Lirik Manual</span>
+                          <span className="material-symbols-outlined text-xs group-open:rotate-180 transition-transform">expand_more</span>
+                        </summary>
+                        <div className="mt-2 space-y-2 pt-2 border-t border-white/5 cursor-default">
+                          <div className="flex gap-2">
+                            <input
+                              type="text"
+                              placeholder="Judul lagu..."
+                              value={lyricsQueryTrack}
+                              onChange={(e) => setLyricsQueryTrack(e.target.value)}
+                              className="w-1/2 bg-stone-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-starlight focus:outline-none"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Artis..."
+                              value={lyricsQueryArtist}
+                              onChange={(e) => setLyricsQueryArtist(e.target.value)}
+                              className="w-1/2 bg-stone-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-starlight focus:outline-none"
+                            />
+                          </div>
+                          <button
+                            onClick={() => fetchLyrics(lyricsQueryTrack, lyricsQueryArtist)}
+                            className="w-full bg-secondary text-stone-950 font-semibold text-[10px] py-1.5 rounded-lg hover:bg-yellow-400 cursor-pointer text-center"
+                          >
+                            Cari Lirik
+                          </button>
+                        </div>
+                      </details>
+                    </div>
+
+                    {/* Lyrics Display */}
+                    {lyricsLoading ? (
+                      <div className="flex-1 flex flex-col items-center justify-center gap-2">
+                        <div className="w-6 h-6 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                        <span className="text-[11px] text-mist/40 font-mono">Mencari lirik...</span>
+                      </div>
+                    ) : lyricsError ? (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+                        <span className="material-symbols-outlined text-3xl text-mist/20 mb-2">lyrics</span>
+                        <p className="text-xs text-mist/50">{lyricsError}</p>
+                      </div>
+                    ) : lyricsLines.length === 0 ? (
+                      <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
+                        <span className="material-symbols-outlined text-3xl text-mist/20 mb-2">music_note</span>
+                        <p className="text-xs text-mist/50">Lirik tidak tersedia</p>
+                      </div>
+                    ) : (
+                      <div 
+                        ref={lyricContainerRef}
+                        className="flex-1 overflow-y-auto scrollbar-styled pr-1 py-10 space-y-4 font-sans mask-lyrics"
+                      >
+                        {lyricsLines.map((line, i) => {
+                          const isActive = activeLyricIndex === i;
+                          const isPlain = line.time >= 99999;
+                          return (
+                            <button
+                              key={i}
+                              onClick={() => {
+                                if (!isPlain) {
+                                  seekTo(line.time);
+                                }
+                              }}
+                              className={`w-full text-left py-1.5 px-3 rounded-xl transition-all text-xs sm:text-sm leading-relaxed cursor-pointer block ${
+                                isActive 
+                                  ? 'lyric-line-active text-secondary font-bold scale-102 bg-white/5 border border-white/5 shadow-inner' 
+                                  : 'text-mist/70 hover:text-starlight hover:bg-white/5 border border-transparent'
+                              }`}
+                            >
+                              {line.text}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Footer YouTube Link */}
