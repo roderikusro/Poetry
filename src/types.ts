@@ -27,6 +27,8 @@ export interface Song {
   artist: string;
   icon: string;
   youtubeUrl: string;
+  thumbnail?: string;
+  duration?: number;
 }
 
 export interface Memory {
