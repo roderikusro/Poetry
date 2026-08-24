@@ -8,12 +8,11 @@ import * as THREE from "three";
 // Import Custom Redesigned Components
 import PoemBrowserModal from "./components/PoemBrowserModal";
 import GalleryModal from "./components/GalleryModal";
-import CopilotModal from "./components/CopilotModal";
 import AdminDashboard from "./components/AdminDashboard";
 
 export default function App() {
   // Navigation & Modal State
-  const [activeModal, setActiveModal] = useState<null | 'puisi' | 'surat' | 'kenangan' | 'settings' | 'secret' | 'copilot' | 'admin'>(null);
+  const [activeModal, setActiveModal] = useState<null | 'puisi' | 'surat' | 'kenangan' | 'settings' | 'secret' | 'admin'>(null);
   
   // Poetry list state (synced with localStorage)
   const [poemsState, setPoemsState] = useState<Poem[]>(() => getPoems());
@@ -682,9 +681,6 @@ export default function App() {
   const kenanganX = useTransform(smoothScrollProgress, [1.02, 1.25], [isMobile ? 90 : 150, isMobile ? 90 + 120 : 150 + 120]);
   const kenanganY = isMobile ? 30 : 50;
 
-  const copilotX = 0;
-  const copilotY = useTransform(smoothScrollProgress, [1.02, 1.25], [isMobile ? -95 : -158, isMobile ? -95 - 100 : -158 - 100]);
-
   // Constellation SVG connection line opacity
   const lineOpacity = useTransform(smoothScrollProgress, (val) => {
     return val > 0.35 && val <= 1.25
@@ -896,16 +892,6 @@ export default function App() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // AI Generated poem callback
-  const handlePoemGenerated = (newPoem: Poem) => {
-    const updated = [newPoem, ...poemsState];
-    savePoems(updated);
-    setPoemsState(updated);
-    setPoemIndex(0);
-    setPoetryView('detail');
-    setActiveModal('puisi');
-  };
-
   return (
     <div id="main-canvas-container" className="relative h-screen w-full bg-surface-dim text-on-surface select-none overflow-hidden font-body flex flex-col justify-between">
       
@@ -1065,11 +1051,9 @@ export default function App() {
               <motion.circle cx={centerMoonX} cy={centerMoonY} r={isMobile ? 95 : 158} stroke="rgba(56, 189, 248, 0.08)" strokeWidth="1.5" strokeDasharray="6 8" fill="none" className="animate-spin-slow" />
               <motion.line x1={centerMoonX} y1={centerMoonY} x2={puisiX} y2={puisiY} stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
               <motion.line x1={centerMoonX} y1={centerMoonY} x2={kenanganX} y2={kenanganY} stroke="#38BDF8" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
-              <motion.line x1={centerMoonX} y1={centerMoonY} x2={copilotX} y2={copilotY} stroke="#06B6D4" strokeWidth="1.5" strokeDasharray="4 6" opacity="0.75" filter="url(#blue-glow)" />
 
               <motion.circle cx={puisiX} cy={puisiY} r="3.5" fill="#38BDF8" className="animate-ping" />
               <motion.circle cx={kenanganX} cy={kenanganY} r="3.5" fill="#38BDF8" className="animate-ping" />
-              <motion.circle cx={copilotX} cy={copilotY} r="3.5" fill="#22D3EE" className="animate-ping" />
             </svg>
 
             {/* Star Node 1: Bintang Puisi */}
@@ -1116,31 +1100,6 @@ export default function App() {
               <div className="flex flex-col items-center">
                 <span className="text-[9px] md:text-xs font-semibold tracking-wider text-starlight group-hover:text-secondary transition-colors font-label-caps uppercase">Rasi Kenangan</span>
                 <span className="text-[7px] md:text-[9px] text-mist/60 italic">Keping Memori</span>
-              </div>
-            </motion.button>
-
-            {/* Star Node 3: Bintang AI Copilot */}
-            <motion.button
-              onClick={() => setActiveModal('copilot')}
-              style={{
-                opacity: starOpacity,
-                scale: star3Scale,
-                x: copilotX,
-                y: copilotY,
-                pointerEvents: starPointerEvents
-              }}
-              className="absolute z-20 group flex flex-col items-center gap-2 cursor-pointer focus:outline-none"
-              aria-label="Kunjungi Bintang AI"
-            >
-              <div className="relative">
-                <div className="absolute inset-0 rounded-full bg-emerald-400/20 blur-md group-hover:blur-lg animate-pulse" />
-                <div className="relative w-11 h-11 md:w-16 md:h-16 rounded-full flex items-center justify-center bg-stone-950/85 border border-emerald-400/50 text-emerald-300 hover:border-emerald-300 hover:text-white shadow-[0_0_20px_rgba(136,210,154,0.4)] hover:shadow-[0_0_30px_rgba(136,210,154,0.8)] transition-all duration-300">
-                  <span className="material-symbols-outlined text-xl md:text-3xl font-fill animate-[spin_10s_linear_infinite]">psychology</span>
-                </div>
-              </div>
-              <div className="flex flex-col items-center">
-                <span className="text-[9px] md:text-xs font-semibold tracking-widest text-emerald-200 group-hover:text-emerald-300 transition-colors font-label-caps uppercase">Bintang AI</span>
-                <span className="text-[7px] md:text-[9px] text-mist/60 italic">Copilot Sajak</span>
               </div>
             </motion.button>
 
@@ -1244,8 +1203,8 @@ export default function App() {
             }}
             className="w-full max-w-xl px-4 flex flex-col items-center gap-3 mt-4"
           >
-            <div className="flex justify-around items-end w-full max-w-2xl mt-1">
-              
+            <div className="flex justify-center items-end w-full max-w-md gap-12 sm:gap-20 mt-1">
+
               {/* Left: Antologi Puisi */}
               <button
                 onClick={() => {
@@ -1262,22 +1221,6 @@ export default function App() {
                 </div>
                 <span className="text-[9px] md:text-xs font-semibold tracking-wider text-mist group-hover:text-primary transition-all uppercase">
                   Puisi
-                </span>
-              </button>
-
-              {/* Center: AI Copilot */}
-              <button
-                onClick={() => setActiveModal('copilot')}
-                className="group flex flex-col items-center gap-2 cursor-pointer transition-all duration-500 transform hover:-translate-y-3 focus:outline-none"
-                aria-label="Buka AI Copilot"
-              >
-                <div className="bloom-effect text-secondary scale-110 md:scale-115 group-hover:scale-125 drop-shadow-[0_0_15px_rgba(255,243,176,0.3)]">
-                  <span className="material-symbols-outlined text-5xl md:text-6.5xl transition-colors duration-700 group-hover:text-starlight" style={{ fontVariationSettings: "'FILL' 1" }}>
-                    psychology
-                  </span>
-                </div>
-                <span className="text-[9px] md:text-xs font-semibold tracking-wider text-mist group-hover:text-secondary transition-all uppercase">
-                  AI Copilot
                 </span>
               </button>
 
@@ -1719,10 +1662,6 @@ export default function App() {
 
                   {activeModal === 'kenangan' && (
                     <GalleryModal showToast={showToast} />
-                  )}
-
-                  {activeModal === 'copilot' && (
-                    <CopilotModal onPoemGenerated={handlePoemGenerated} showToast={showToast} />
                   )}
 
                   {activeModal === 'admin' && (
