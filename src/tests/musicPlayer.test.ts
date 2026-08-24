@@ -1,6 +1,6 @@
 import { test, describe } from 'node:test';
 import assert from 'node:assert';
-import { parseLrc, getActiveLyricIndex, formatYouTubeSearch } from '../data/musicUtils';
+import { parseLrc, getActiveLyricIndex, formatYouTubeSearch, formatTime } from '../data/musicUtils';
 
 describe('Music Player Utilities', () => {
   describe('parseLrc', () => {
@@ -93,4 +93,18 @@ describe('Music Player Utilities', () => {
       assert.strictEqual(songs[1].duration, 233);
     });
   });
+
+  describe('formatTime', () => {
+    test('should format regular seconds to MM:SS', () => {
+      assert.strictEqual(formatTime(0), '00:00');
+      assert.strictEqual(formatTime(5), '00:05');
+      assert.strictEqual(formatTime(65), '01:05');
+      assert.strictEqual(formatTime(3599), '59:59');
+    });
+
+    test('should handle NaN gracefully', () => {
+      assert.strictEqual(formatTime(NaN), '00:00');
+    });
+  });
 });
+

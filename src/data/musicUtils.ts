@@ -76,3 +76,12 @@ export function formatYouTubeSearch(items: any[]): Song[] {
     };
   });
 }
+
+// Formats seconds into MM:SS format
+export function formatTime(timeInSeconds: number): string {
+  if (isNaN(timeInSeconds)) return "00:00";
+  const mins = Math.floor(timeInSeconds / 60);
+  const secs = Math.floor(timeInSeconds % 60);
+  return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+}
+

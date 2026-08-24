@@ -22,6 +22,7 @@ interface StanzaField {
   value: string;
   lyric: string;
   timeStr: string; // MM:SS format
+  imageUrl: string;
 }
 
 export default function AdminDashboard({
@@ -54,7 +55,7 @@ export default function AdminDashboard({
   const [privatePassword, setPrivatePassword] = useState("");
   const [selectedTagTypes, setSelectedTagTypes] = useState<string[]>([]);
   const [stanzas, setStanzas] = useState<StanzaField[]>([
-    { id: 1, value: "", lyric: "", timeStr: "00:00" }
+    { id: 1, value: "", lyric: "", timeStr: "00:00", imageUrl: "" }
   ]);
   const [formStatus, setFormStatus] = useState<string | null>(null);
   const [formStatusColor, setFormStatusColor] = useState("text-rose-400");
@@ -204,16 +205,18 @@ export default function AdminDashboard({
         const mins = Math.floor(timestamp / 60);
         const secs = String(timestamp % 60).padStart(2, "0");
         const lyric = p.lyrics && p.lyrics[idx] ? p.lyrics[idx] : "";
+        const imageUrl = p.stanzaImages && p.stanzaImages[idx] ? p.stanzaImages[idx] : "";
         return {
           id: nextStanzaId.current++,
           value: s,
           lyric,
-          timeStr: `${mins}:${secs}`
+          timeStr: `${mins}:${secs}`,
+          imageUrl
         };
       });
       setStanzas(fields);
     } else {
-      setStanzas([{ id: nextStanzaId.current++, value: "", lyric: "", timeStr: "00:00" }]);
+      setStanzas([{ id: nextStanzaId.current++, value: "", lyric: "", timeStr: "00:00", imageUrl: "" }]);
     }
 
     setActiveTab("create");
@@ -256,6 +259,7 @@ export default function AdminDashboard({
     const collectedStanzas: string[] = [];
     const collectedLyrics: string[] = [];
     const collectedTimestamps: number[] = [];
+    const collectedStanzaImages: string[] = [];
 
     stanzas.forEach((s) => {
       const val = s.value.trim();
@@ -263,6 +267,7 @@ export default function AdminDashboard({
         collectedStanzas.push(val);
         collectedLyrics.push(s.lyric.trim());
         collectedTimestamps.push(parseTimeStr(s.timeStr));
+        collectedStanzaImages.push((s.imageUrl || "").trim());
       }
     });
 
@@ -297,6 +302,7 @@ export default function AdminDashboard({
       tags,
       excerpt: autoExcerpt,
       stanzas: collectedStanzas,
+      stanzaImages: collectedStanzaImages,
       lyrics: collectedLyrics,
       timestamps: collectedTimestamps,
       youtubeUrl: youtubeUrl.trim(),
@@ -1048,6 +1054,17 @@ Berikan hasil dalam format JSON persis seperti ini, tanpa markdown block, hanya 
                           onChange={(e) => handleUpdateStanzaField(stanza.id, "lyric", e.target.value)}
                           placeholder="Lirik lagunya..."
                           className="bg-white/5 border border-white/10 rounded px-2 py-0.5 text-[10px] text-starlight outline-none w-36 focus:border-primary/50"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-1.5 text-[10px] text-mist/50">
+                        <span>Foto 3D:</span>
+                        <input
+                          type="text"
+                          value={stanza.imageUrl}
+                          onChange={(e) => handleUpdateStanzaField(stanza.id, "imageUrl", e.target.value)}
+                          placeholder="URL Foto Stanza..."
+                          className="bg-white/5 border border-white/10 rounded px-2 py-0.5 text-[10px] text-starlight outline-none w-32 focus:border-primary/50"
                         />
                       </div>
 

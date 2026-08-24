@@ -17,23 +17,27 @@ function searchProxyPlugin(): Plugin {
           res.setHeader('Access-Control-Allow-Origin', '*');
           
           try {
-            const pipedInstances = [
-              'https://pipedapi.kavin.rocks',
-              'https://pipedapi.us.to',
-              'https://piped-api.lunar.icu',
-              'https://api.piped.yt'
+            const invidiousInstances = [
+              'https://yt.chocolatemoo53.com',
+              'https://inv.thepixora.com',
+              'https://invidious.nerdvpn.de',
+              'https://invidious.f5.si'
             ];
             
             let data: any = null;
             let success = false;
             
-            for (const instance of pipedInstances) {
+            for (const instance of invidiousInstances) {
               try {
-                const searchUrl = `${instance}/search?q=${encodeURIComponent(query)}&filter=music_songs`;
-                const response = await fetch(searchUrl);
+                const searchUrl = `${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 3000);
+                const response = await fetch(searchUrl, { signal: controller.signal });
+                clearTimeout(timeoutId);
                 if (response.ok) {
-                  data = await response.json();
-                  if (data && Array.isArray(data.items)) {
+                  const json = await response.json();
+                  if (Array.isArray(json)) {
+                    data = json;
                     success = true;
                     break;
                   }
@@ -43,45 +47,15 @@ function searchProxyPlugin(): Plugin {
               }
             }
             
-            if (!success || !data || !data.items || data.items.length === 0) {
-              for (const instance of pipedInstances) {
-                try {
-                  const searchUrl = `${instance}/search?q=${encodeURIComponent(query)}&filter=videos`;
-                  const response = await fetch(searchUrl);
-                  if (response.ok) {
-                    data = await response.json();
-                    if (data && Array.isArray(data.items)) {
-                      success = true;
-                      break;
-                    }
-                  }
-                } catch (e) {
-                  // Try next
-                }
-              }
-            }
-            
-            if (success && data && Array.isArray(data.items)) {
-              const songs = data.items.map((item: any) => {
-                let youtubeUrl = '';
-                if (item.url) {
-                  if (item.url.startsWith('http')) {
-                    youtubeUrl = item.url;
-                  } else {
-                    const cleanPath = item.url.startsWith('/') ? item.url : `/${item.url}`;
-                    youtubeUrl = `https://www.youtube.com${cleanPath}`;
-                  }
-                }
-                
-                return {
-                  title: item.title || 'Unknown Title',
-                  artist: item.uploaderName || 'Unknown Artist',
-                  icon: '🎵',
-                  youtubeUrl: youtubeUrl,
-                  thumbnail: item.thumbnail || '',
-                  duration: item.duration || 0
-                };
-              });
+            if (success && data && Array.isArray(data)) {
+              const songs = data.map((item: any) => ({
+                title: item.title || 'Unknown Title',
+                artist: item.author || 'Unknown Artist',
+                icon: '🎵',
+                youtubeUrl: `https://www.youtube.com/watch?v=${item.videoId}`,
+                thumbnail: `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`,
+                duration: item.lengthSeconds || 0
+              }));
               res.end(JSON.stringify(songs));
             } else {
               res.end(JSON.stringify([]));

@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import html2canvas from "html2canvas";
 import { Poem, Tag } from "../types";
-import { formatDate } from "../data/poetryData";
+import { formatDate, getStanzaImage } from "../data/poetryData";
+import Interactive3DPoemReader from "./Interactive3DPoemReader";
 
 interface PoemBrowserModalProps {
   poems: Poem[];
@@ -14,7 +16,6 @@ interface PoemBrowserModalProps {
   setPoetryView: (view: "list" | "detail") => void;
   showToast: (msg: string) => void;
   isPlaying: boolean;
-  currentTime: number;
   seekTo: (seconds: number) => void;
   currentTrackIndex: number;
   playlistData: any[];
@@ -31,7 +32,6 @@ export default function PoemBrowserModal({
   setPoetryView,
   showToast,
   isPlaying,
-  currentTime,
   seekTo,
   currentTrackIndex,
   playlistData,
@@ -42,8 +42,68 @@ export default function PoemBrowserModal({
   const [sortBy, setSortBy] = useState<"newest" | "oldest">("newest");
   const [searchQuery, setSearchQuery] = useState("");
   const [unlockedPoemIds, setUnlockedPoemIds] = useState<number[]>([]);
+  const [show3DReader, setShow3DReader] = useState(true);
   const [passwordInput, setPasswordInput] = useState("");
+  const [activeLayerIndex, setActiveLayerIndex] = useState(0);
+  const [deckViewMode, setDeckViewMode] = useState<"layered" | "classic">("layered");
+
+  // Reset activeLayerIndex when poemIndex changes
+  useEffect(() => {
+    setActiveLayerIndex(0);
+  }, [poemIndex]);
+
+  // Local time state to isolate updates
+  const [currentTime, setCurrentTime] = useState(0);
+  useEffect(() => {
+    const handleTimeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setCurrentTime(customEvent.detail.currentTime);
+    };
+    window.addEventListener('music-time-update', handleTimeUpdate);
+    return () => {
+      window.removeEventListener('music-time-update', handleTimeUpdate);
+    };
+  }, []);
   const [shakeLock, setShakeLock] = useState(false);
+
+  // Layered Deck navigation handlers
+  const isDeckScrollingRef = useRef(false);
+  const touchStartYRef = useRef(0);
+
+  const handleNextLayer = () => {
+    if (!currentPoem || !currentPoem.stanzas) return;
+    if (activeLayerIndex < currentPoem.stanzas.length - 1) {
+      setActiveLayerIndex((prev) => prev + 1);
+    } else {
+      changePoem("next");
+    }
+  };
+
+  const handlePrevLayer = () => {
+    if (!currentPoem || !currentPoem.stanzas) return;
+    if (activeLayerIndex > 0) {
+      setActiveLayerIndex((prev) => prev - 1);
+    } else {
+      changePoem("prev");
+    }
+  };
+
+  const handleDeckWheel = (e: React.WheelEvent) => {
+    if (isDeckScrollingRef.current) return;
+    if (e.deltaY > 25) {
+      isDeckScrollingRef.current = true;
+      handleNextLayer();
+      setTimeout(() => {
+        isDeckScrollingRef.current = false;
+      }, 400);
+    } else if (e.deltaY < -25) {
+      isDeckScrollingRef.current = true;
+      handlePrevLayer();
+      setTimeout(() => {
+        isDeckScrollingRef.current = false;
+      }, 400);
+    }
+  };
 
   // Sorting and filtering poems
   const sortedAndFilteredPoems = useMemo(() => {
@@ -376,6 +436,7 @@ export default function PoemBrowserModal({
                       onClick={() => {
                         setPoemIndex(globalIdx);
                         setPoetryView("detail");
+                        setShow3DReader(true);
                       }}
                       whileHover={{ scale: 1.008, y: -2 }}
                       className="group flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-white/5 hover:border-primary/20 bg-surface-container-low hover:bg-surface-container-high transition-all cursor-pointer relative overflow-hidden"
@@ -442,6 +503,7 @@ export default function PoemBrowserModal({
                       onClick={() => {
                         setPoemIndex(globalIdx);
                         setPoetryView("detail");
+                        setShow3DReader(true);
                       }}
                       whileHover={{ y: -4, scale: 1.01 }}
                       className={`group relative flex flex-col justify-between p-5 rounded-2xl bg-surface-container-low border hover:bg-surface-container-high cursor-pointer transition-colors duration-300 ${theme.glowClass} ${theme.hoverGlow}`}
@@ -520,6 +582,16 @@ export default function PoemBrowserModal({
                 <span>KEMBALI KE DAFTAR</span>
               </button>
 
+              {isCurrentUnlocked && (
+                <button
+                  onClick={() => setShow3DReader(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-primary/20 via-indigo-500/20 to-secondary/20 hover:from-primary/35 hover:to-secondary/35 border border-primary/40 text-starlight text-[10px] font-semibold tracking-wider font-label-caps transition-all shadow-[0_0_15px_rgba(184,166,255,0.2)] hover:shadow-[0_0_25px_rgba(184,166,255,0.4)] cursor-pointer group"
+                >
+                  <span className="material-symbols-outlined text-xs text-primary font-fill animate-pulse">auto_awesome</span>
+                  <span>MODE 3D SPHERE PUISI</span>
+                </button>
+              )}
+
               <span className="text-[10px] text-stone-400 font-semibold tracking-widest bg-stone-900/50 px-3 py-1 rounded-full border border-white/5 uppercase">
                 Puisi {poemIndex + 1} dari {poems.length}
               </span>
@@ -551,21 +623,21 @@ export default function PoemBrowserModal({
               </div>
             </div>
 
-            {/* Parchment Reading Container */}
-            <div className="relative border border-secondary/15 rounded-2xl bg-stone-950/45 p-6 md:p-12 shadow-[0_0_20px_rgba(184,166,255,0.03)] overflow-hidden min-h-[300px] flex flex-col items-center justify-center">
+            {/* Reading Container: Interactive Layered Stanza Deck / Classic View */}
+            <div className="relative border border-white/10 rounded-3xl bg-stone-950/60 backdrop-blur-2xl p-4 md:p-8 shadow-[0_0_35px_rgba(0,0,0,0.5)] overflow-hidden min-h-[460px] flex flex-col justify-between">
               
-              {/* Star decorators */}
-              <div className="absolute top-3 left-3 text-white/5 text-xs select-none">✦</div>
-              <div className="absolute top-3 right-3 text-white/5 text-xs select-none">✦</div>
-              <div className="absolute bottom-3 left-3 text-white/5 text-xs select-none">✦</div>
-              <div className="absolute bottom-3 right-3 text-white/5 text-xs select-none">✦</div>
+              {/* Corner Star Decorators */}
+              <div className="absolute top-4 left-4 text-primary/30 text-xs select-none">✦</div>
+              <div className="absolute top-4 right-4 text-secondary/30 text-xs select-none">✦</div>
+              <div className="absolute bottom-4 left-4 text-secondary/30 text-xs select-none">✦</div>
+              <div className="absolute bottom-4 right-4 text-primary/30 text-xs select-none">✦</div>
 
               {!isCurrentUnlocked ? (
                 /* Locked Password Shield */
                 <motion.div
                   animate={shakeLock ? { x: [-10, 10, -10, 10, 0] } : {}}
                   transition={{ duration: 0.4 }}
-                  className="w-full max-w-sm text-center py-8 space-y-5"
+                  className="w-full max-w-sm text-center py-12 mx-auto space-y-5"
                 >
                   <div className="space-y-2">
                     <span className="material-symbols-outlined text-rose-400 text-5xl font-fill animate-pulse">
@@ -594,7 +666,7 @@ export default function PoemBrowserModal({
                     </button>
                   </div>
 
-                  {/* Locked placeholder mockup (underneath) */}
+                  {/* Locked placeholder mockup */}
                   <div className="space-y-3 opacity-15 select-none pointer-events-none mt-6">
                     <div className="h-4 bg-white/30 w-3/4 mx-auto rounded-full shimmer-line" />
                     <div className="h-4 bg-white/30 w-5/6 mx-auto rounded-full shimmer-line" />
@@ -603,80 +675,210 @@ export default function PoemBrowserModal({
                 </motion.div>
               ) : (
                 /* Unlocked Poem Content */
-                <div className={`w-full space-y-8 py-2 transition-all duration-300 ${isChangingPoem ? "opacity-0 scale-98" : "opacity-100 scale-100"}`}>
+                <div className="w-full flex-1 flex flex-col justify-between space-y-6">
                   
-                  {/* Stanzas Loop */}
-                  {currentPoem.stanzas.map((stanza, idx) => {
-                    // Check if lyric sync active for this stanza
-                    const hasLyric = currentPoem.lyrics && currentPoem.lyrics[idx];
-                    const timestamp = currentPoem.timestamps && currentPoem.timestamps[idx];
-                    
-                    // Highlight logic
-                    let isLyricActive = false;
-                    if (showLyricsSync && timestamp !== undefined) {
-                      // Find if this is the active stanza by comparing current time with timestamps
-                      // Highlight the active snippet if current time is around this timestamp
-                      const nextTimestamp = currentPoem.timestamps && currentPoem.timestamps[idx + 1] 
-                        ? currentPoem.timestamps[idx + 1] 
-                        : Infinity;
-                      isLyricActive = currentTime >= timestamp && currentTime < nextTimestamp;
-                    }
+                  {/* View Mode Toggle Sub-Header */}
+                  <div className="flex justify-between items-center px-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] text-mist/50 uppercase font-mono tracking-widest">
+                        Bait {activeLayerIndex + 1} dari {currentPoem.stanzas.length}
+                      </span>
+                      {currentPoem.songTitle && onPlaySongFromPoem && (
+                        <button
+                          onClick={() => onPlaySongFromPoem(currentPoem)}
+                          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] border transition-all cursor-pointer font-sans ${
+                            isPlaying
+                              ? "bg-secondary/20 border-secondary text-secondary font-bold animate-pulse"
+                              : "bg-white/5 border-white/10 text-mist hover:text-starlight"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-xs font-fill">
+                            {isPlaying ? "pause" : "music_note"}
+                          </span>
+                          <span>{isPlaying ? "Audio Memutar" : currentPoem.songTitle}</span>
+                        </button>
+                      )}
+                    </div>
 
-                    return (
-                      <div
-                        key={idx}
-                        className="group/stanza relative flex flex-col md:flex-row md:items-center justify-between w-full border border-transparent hover:border-white/5 hover:bg-white/1 rounded-xl p-4 transition-all"
-                      >
-                        {/* Poem Stanza Body */}
-                        <div className="flex-1 md:pr-6">
-                          <p
-                            className="font-poem text-lg md:text-xl text-stone-100 leading-loose text-center md:text-left italic select-text"
-                            dangerouslySetInnerHTML={{ __html: stanza }}
+                    {/* Mode Toggle Button: Layered Deck vs Classic List */}
+                    <button
+                      onClick={() => setDeckViewMode(deckViewMode === "layered" ? "classic" : "layered")}
+                      className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-[10px] text-mist hover:text-primary transition-all cursor-pointer font-label-caps"
+                      title="Ubah Mode Tampilan"
+                    >
+                      <span className="material-symbols-outlined text-xs">
+                        {deckViewMode === "layered" ? "view_agenda" : "layers"}
+                      </span>
+                      <span>{deckViewMode === "layered" ? "Tampilan List" : "Mode Layer 3D"}</span>
+                    </button>
+                  </div>
+
+                  {deckViewMode === "layered" ? (
+                    /* INTERACTIVE LAYERED STANZA CARDS DECK */
+                    <div
+                      onWheel={handleDeckWheel}
+                      onTouchStart={(e) => (touchStartYRef.current = e.touches[0].clientY)}
+                      onTouchEnd={(e) => {
+                        const deltaY = touchStartYRef.current - e.changedTouches[0].clientY;
+                        if (Math.abs(deltaY) > 35) {
+                          if (deltaY > 0) handleNextLayer();
+                          else handlePrevLayer();
+                        }
+                      }}
+                      className="relative w-full h-[360px] md:h-[380px] flex items-center justify-center overflow-hidden cursor-grab active:cursor-grabbing select-none"
+                    >
+                      <AnimatePresence mode="popLayout">
+                        {currentPoem.stanzas.map((stanza, idx) => {
+                          const offset = idx - activeLayerIndex;
+                          const isCurrent = offset === 0;
+
+                          // Only render visible cards around activeLayerIndex
+                          if (Math.abs(offset) > 2) return null;
+
+                          const stanzaImgUrl = getStanzaImage(currentPoem, idx);
+                          const hasLyric = currentPoem.lyrics && currentPoem.lyrics[idx];
+                          const timestamp = currentPoem.timestamps && currentPoem.timestamps[idx];
+
+                          return (
+                            <motion.div
+                              key={idx}
+                              initial={{ opacity: 0, y: offset * 80, scale: 0.85 }}
+                              animate={{
+                                opacity: isCurrent ? 1 : Math.abs(offset) === 1 ? 0.35 : 0,
+                                y: offset * 45,
+                                scale: isCurrent ? 1 : 0.88,
+                                rotateX: offset * -8,
+                                zIndex: 30 - Math.abs(offset) * 10
+                              }}
+                              exit={{ opacity: 0, y: offset * -80, scale: 0.8 }}
+                              transition={{ duration: 0.45, ease: "easeOut" }}
+                              onClick={() => setActiveLayerIndex(idx)}
+                              className={`absolute inset-x-0 mx-auto w-full max-w-2xl p-5 md:p-8 rounded-3xl border transition-shadow ${
+                                isCurrent
+                                  ? "bg-stone-900/90 border-primary/40 shadow-[0_0_40px_rgba(184,166,255,0.25)] pointer-events-auto"
+                                  : "bg-stone-950/80 border-white/10 shadow-lg pointer-events-auto cursor-pointer"
+                              }`}
+                            >
+                              <div className="flex flex-col md:flex-row items-center gap-6">
+                                {/* Left Side: 3D Stanza Photo Frame */}
+                                <div className="relative group/photo shrink-0 w-32 h-32 md:w-44 md:h-44 rounded-2xl overflow-hidden border border-white/15 shadow-xl bg-stone-950">
+                                  <img
+                                    src={stanzaImgUrl}
+                                    alt={`Stanza ${idx + 1}`}
+                                    className="w-full h-full object-cover group-hover/photo:scale-105 transition-transform duration-700"
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-stone-950/70 via-transparent to-transparent" />
+                                  <span className="absolute bottom-2 left-2 text-[9px] font-mono text-starlight/90 bg-stone-950/70 border border-white/10 px-2 py-0.5 rounded-full">
+                                    ✦ Stanza {idx + 1}
+                                  </span>
+                                </div>
+
+                                {/* Right Side: Stanza Text & Content */}
+                                <div className="flex-1 space-y-4 text-center md:text-left">
+                                  <p
+                                    className="font-poem text-lg md:text-xl lg:text-2xl text-starlight leading-relaxed italic select-text drop-shadow-sm"
+                                    dangerouslySetInnerHTML={{ __html: stanza }}
+                                  />
+
+                                  {/* Synchronized Lyric Pill */}
+                                  {hasLyric && (
+                                    <div
+                                      onClick={() => timestamp !== undefined && seekTo && seekTo(timestamp)}
+                                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary/10 border border-secondary/25 text-secondary text-xs italic cursor-pointer hover:bg-secondary/20 transition-all"
+                                    >
+                                      <span className="material-symbols-outlined text-xs font-fill">music_note</span>
+                                      <span>"{currentPoem.lyrics?.[idx]}"</span>
+                                    </div>
+                                  )}
+
+                                  {/* Action Buttons for active stanza */}
+                                  {isCurrent && (
+                                    <div className="flex justify-center md:justify-start items-center gap-2 pt-2 border-t border-white/5">
+                                      <button
+                                        onClick={() => handleCopyStanza(stanza, idx)}
+                                        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-[10px] text-mist hover:text-primary transition-all cursor-pointer font-label-caps"
+                                        title="Salin Bait"
+                                      >
+                                        <span className="material-symbols-outlined text-xs">content_copy</span>
+                                        <span>Salin</span>
+                                      </button>
+                                      <button
+                                        onClick={() => handleDownloadStanza(stanza, idx)}
+                                        className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-[10px] text-mist hover:text-secondary transition-all cursor-pointer font-label-caps"
+                                        title="Unduh PNG Bait"
+                                      >
+                                        <span className="material-symbols-outlined text-xs">download</span>
+                                        <span>Kartu PNG</span>
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </AnimatePresence>
+                    </div>
+                  ) : (
+                    /* CLASSIC LIST VIEW (ALL STANZAS) */
+                    <div className="space-y-6 py-2 max-h-[380px] overflow-y-auto pr-2">
+                      {currentPoem.stanzas.map((stanza, idx) => (
+                        <div
+                          key={idx}
+                          className="flex flex-col md:flex-row items-center gap-4 p-4 rounded-2xl bg-white/3 border border-white/5 hover:border-white/15 transition-all"
+                        >
+                          <img
+                            src={getStanzaImage(currentPoem, idx)}
+                            alt=""
+                            className="w-20 h-20 rounded-xl object-cover border border-white/10 shrink-0"
                           />
-                        </div>
-
-                        {/* Lyrics Sync Column */}
-                        {hasLyric && (
-                          <div 
-                            onClick={() => timestamp !== undefined && seekTo(timestamp)}
-                            className={`my-3 md:my-0 md:w-64 border-l border-white/5 pl-4 flex items-center gap-1.5 cursor-pointer text-xs transition-colors py-1.5 ${
-                              isLyricActive
-                                ? "text-secondary font-bold scale-[1.02] drop-shadow-[0_0_10px_rgba(210,200,136,0.4)]"
-                                : "text-mist/55 hover:text-mist"
-                            }`}
-                          >
-                            <span className="material-symbols-outlined text-sm font-fill">music_note</span>
-                            <span className="font-sans italic line-clamp-2">
-                              "{currentPoem.lyrics?.[idx]}"
-                            </span>
-                            {timestamp !== undefined && (
-                              <span className="text-[9px] bg-white/5 border border-white/5 rounded px-1 ml-auto text-mist/40">
-                                {Math.floor(timestamp / 60)}:{(timestamp % 60).toString().padStart(2, '0')}
-                              </span>
-                            )}
+                          <div className="flex-1 text-center md:text-left">
+                            <p
+                              className="font-poem text-base md:text-lg text-stone-100 italic"
+                              dangerouslySetInnerHTML={{ __html: stanza }}
+                            />
                           </div>
-                        )}
-
-                        {/* Stanza Action Panel Overlay */}
-                        <div className="absolute top-2 right-2 opacity-0 group-hover/stanza:opacity-100 transition-opacity flex gap-1.5 bg-stone-900/95 border border-white/10 px-2 py-1 rounded-full shadow-lg z-10">
-                          <button
-                            onClick={() => handleCopyStanza(stanza, idx)}
-                            className="flex items-center justify-center p-1 rounded-full hover:bg-white/10 text-mist hover:text-primary transition-colors cursor-pointer"
-                            title="Salin Bait"
-                          >
-                            <span className="material-symbols-outlined text-xs">content_copy</span>
-                          </button>
-                          <button
-                            onClick={() => handleDownloadStanza(stanza, idx)}
-                            className="flex items-center justify-center p-1 rounded-full hover:bg-white/10 text-mist hover:text-secondary transition-colors cursor-pointer"
-                            title="Unduh PNG Bait"
-                          >
-                            <span className="material-symbols-outlined text-xs">download</span>
-                          </button>
                         </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Bottom Layered Navigation & Progress Bar */}
+                  {deckViewMode === "layered" && (
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/10">
+                      <button
+                        onClick={handlePrevLayer}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 hover:bg-white/15 border border-white/10 text-mist hover:text-starlight text-xs font-semibold font-label-caps transition-all cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-xs">arrow_back</span>
+                        <span>{activeLayerIndex === 0 ? "PUISI SEBELUMNYA" : "BAIT SEBELUMNYA"}</span>
+                      </button>
+
+                      {/* Stanza Dots Indicator */}
+                      <div className="flex items-center gap-1.5 bg-stone-900/80 border border-white/10 px-3 py-1 rounded-full backdrop-blur-md">
+                        {currentPoem.stanzas.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setActiveLayerIndex(idx)}
+                            className={`transition-all duration-300 rounded-full cursor-pointer ${
+                              idx === activeLayerIndex
+                                ? "w-6 h-2 bg-primary shadow-[0_0_8px_rgba(184,166,255,0.7)]"
+                                : "w-2 h-2 bg-white/20 hover:bg-white/40"
+                            }`}
+                            title={`Lompat ke Stanza ${idx + 1}`}
+                          />
+                        ))}
                       </div>
-                    );
-                  })}
+
+                      <button
+                        onClick={handleNextLayer}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/20 hover:bg-primary/30 border border-primary/30 text-primary hover:text-starlight text-xs font-semibold font-label-caps transition-all cursor-pointer"
+                      >
+                        <span>{activeLayerIndex === currentPoem.stanzas.length - 1 ? "PUISI BERIKUTNYA" : "BAIT BERIKUTNYA"}</span>
+                        <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
@@ -712,6 +914,28 @@ export default function PoemBrowserModal({
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Fullscreen Stellarium 3D Galaxy Poem Reader */}
+      {show3DReader && isCurrentUnlocked && createPortal(
+        <Interactive3DPoemReader
+          poem={currentPoem}
+          allPoems={poems}
+          onSelectPoem={(p) => {
+            const idx = poems.findIndex((x) => x.id === p.id);
+            if (idx > -1) setPoemIndex(idx);
+          }}
+          onClose={() => setShow3DReader(false)}
+          showToast={showToast}
+          isPlaying={isPlaying}
+          seekTo={seekTo}
+          onPlaySongFromPoem={onPlaySongFromPoem}
+          onNextPoem={() => changePoem("next")}
+          onPrevPoem={() => changePoem("prev")}
+          poemIndex={poemIndex}
+          totalPoems={poems.length}
+        />,
+        document.body
+      )}
     </div>
   );
 }

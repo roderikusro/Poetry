@@ -178,14 +178,35 @@ export function normalizePoem(p: any): Poem {
   const poem = { ...p };
   if (!poem.tags) poem.tags = [];
   if (!poem.stanzas) poem.stanzas = [];
+  if (!poem.stanzaImages) poem.stanzaImages = [];
   if (!poem.lyrics) poem.lyrics = [];
   if (!poem.timestamps) poem.timestamps = [];
   poem.stanzas = poem.stanzas.map((s: any) => typeof s === 'string' ? s : JSON.stringify(s));
+  poem.stanzaImages = poem.stanzaImages.map((s: any) => typeof s === 'string' ? s : '');
   return poem;
 }
 
 export function normalizePoemArray(arr: any[]): Poem[] {
   return arr.map(p => normalizePoem(p));
+}
+
+// Fallback high quality aesthetic memory & cosmic images
+const FALLBACK_STANZA_IMAGES = [
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuDjxmn8IG5UfJ2pee18A7AXH1Q1cnvDG0-4Fw6I1kDlq55clrYjxQKkwIFpAJ2Gu4RyHnDF9EcUpQ0LJoSD8EubfVsYzJnfbugLjHfQv-MlXOwt19TklgTBEr6yEQjAmZW2qsRY2RUFFhxjBlo-rE9N-4EoSexR8-uc6fLzFEW0_CfOmY2KXEsFeiUXgO9FPJLcTrc0st6uTfWUwoIn5A3WIcbLGmtdAlHDogdwjK293LBudFCy3iuc2L0RU2daGL2hyiiiBz8c4r3n",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuBvc_LikTs5P7jRcKOnEeHheRsKxLmEhqmuZwqCb-sPk-M8wVeAy2SKLu0VyZDhfax-oOuRSH4_3NZS-zOjr4inDpEY7pA_nbfQ07sOupti0bwxkviPq18Vre0RevdOfmhwT2fkdSF8hP-vuWMmvKUiYtiPpo1l7pvLl75le7T7oyLtxqoIpCDNgEnOVqGfgrKfllGzAbDEqgKg2Y4Ji5d5nP4CWo7Kmx7d8otE17NsRc__r4oPHjkHyJIsZg_jTXWgsnOSU6JpEmHt",
+  "https://lh3.googleusercontent.com/aida-public/AB6AXuCvYFkw2wz3W-KGbHAq0diYOD0UsWbxIdjqsNHhkTEs-clU4Jk-3J9qF901uXMcVY7VLiIbOiRLwjAS-NQ5hFAyBTd1Q4W7ZPzER0iSaAh4m_9RUmnTLComZyUHYGnfQbMbgP8JuVL_TUSpaiqYfOQTpqSUZCETTJ9RM4lByrurzi7eXUTflGmrK5pHGp4bob3uB8e7dQ3cnGkfH5mACLJ3gYQeKafQuioYpQlm3i0QzkDk_Cx1mjVOSLjJLhjrtRYf_MODH_6PAHwO",
+  "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1200&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1200&auto=format&fit=crop"
+];
+
+export function getStanzaImage(poem: Poem, index: number): string {
+  if (poem.stanzaImages && poem.stanzaImages[index] && poem.stanzaImages[index].trim() !== '') {
+    return poem.stanzaImages[index];
+  }
+  const seed = (poem.id * 10 + index) % FALLBACK_STANZA_IMAGES.length;
+  return FALLBACK_STANZA_IMAGES[seed];
 }
 
 export function getPoems(): Poem[] {

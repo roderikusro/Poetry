@@ -156,46 +156,70 @@ Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dal
     <div className="w-full h-full text-left font-body">
       {/* Intro */}
       <div className="text-center space-y-2 mb-6">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/5 border border-white/10 mb-1">
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-tr from-violet-500/20 via-cyan-400/20 to-amber-300/20 border border-white/20 mb-1 shadow-[0_0_20px_rgba(167,139,250,0.3)]">
           <span className="material-symbols-outlined text-primary text-3xl font-fill animate-pulse">
             psychology
           </span>
         </div>
-        <h2 className="font-display text-3xl md:text-4xl text-starlight tracking-wider font-bold">
-          AI Copilot
+        <h2 className="font-display text-3xl md:text-4xl font-bold tracking-wider text-shimmer-cosmic">
+          AI Copilot Sajak
         </h2>
-        <p className="text-stone-300/80 font-serif italic text-xs md:text-sm max-w-prose mx-auto">
+        <p className="text-stone-300/80 font-poem italic text-sm md:text-base max-w-prose mx-auto kinetic-tracking">
           "Bicaralah pada angin malam, biarkan kecerdasan buatan merangkai kata sunyi yang menyembuhkan"
         </p>
       </div>
 
-      <div className="max-w-xl mx-auto border border-white/5 rounded-2xl bg-stone-950/25 p-6 md:p-8 space-y-5 shadow-xl backdrop-blur-md">
+      <div className="max-w-xl mx-auto glass-award p-6 md:p-8 space-y-5 shadow-2xl rounded-3xl border border-white/10">
         
+        {/* Preset Prompt Chips */}
+        <div className="space-y-2">
+          <label className="text-[10px] text-mist/60 font-semibold tracking-widest font-mono uppercase block">
+            ✦ Inspiration Chips (Ketuk untuk Menggunakan):
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {[
+              "Rindu Sisi dalam Metafora Kupu-Kupu 🦋",
+              "Penyembuhan Luka Bersama Shofia di Hujan Sore 🌧️",
+              "Bintang Jatuh di Langit Midnight Garden ✨",
+              "Sepiring Roti & Cangkir Kopi Malam Sunyi ☕"
+            ].map((chip, idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => setPrompt(chip)}
+                className="px-3 py-1 rounded-full bg-white/5 hover:bg-secondary/20 border border-white/10 hover:border-secondary/40 text-[10px] text-stone-300 hover:text-secondary transition-all cursor-pointer"
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Topic Input */}
         <div className="space-y-2">
-          <label className="text-xs text-mist/60 font-semibold tracking-wider font-sans uppercase">
+          <label className="text-xs text-mist/70 font-semibold tracking-wider uppercase font-mono">
             Inspirasi Puisi / Topik
           </label>
           <textarea
-            rows={4}
+            rows={3}
             placeholder="Tulis topik atau suasana... (contoh: Hujan sore hari yang tenang bersama kenangan masa kecil, atau sebut nama Sisi/Shofia)"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             disabled={loading}
-            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-xs text-starlight outline-none focus:border-primary/50 placeholder:text-mist/20 resize-none font-sans"
+            className="w-full bg-stone-950/60 border border-white/15 rounded-xl p-3.5 text-xs text-starlight outline-none focus:border-secondary/60 placeholder:text-mist/30 resize-none font-sans transition-all"
           />
         </div>
 
         {/* Model Selection */}
         <div className="space-y-2">
-          <label className="text-xs text-mist/60 font-semibold tracking-wider font-sans uppercase">
+          <label className="text-xs text-mist/70 font-semibold tracking-wider uppercase font-mono">
             Model Kecerdasan AI
           </label>
           <select
             value={model}
             onChange={(e) => setModel(e.target.value)}
             disabled={loading}
-            className="w-full bg-stone-900 border border-white/10 rounded-xl p-3 text-xs text-starlight outline-none focus:border-primary/50 cursor-pointer font-sans"
+            className="w-full bg-stone-950/80 border border-white/15 rounded-xl p-3 text-xs text-starlight outline-none focus:border-secondary/60 cursor-pointer font-sans"
           >
             <option value="openrouter/auto">Owl Alpha (Rekomendasi Default)</option>
             <option value="claude-3.5-sonnet">Claude 3.5 Sonnet (AgentRouter)</option>
@@ -208,24 +232,24 @@ Setiap bait harus berupa string tunggal, dan gunakan <br> untuk pindah baris dal
         <button
           onClick={handleGenerate}
           disabled={loading}
-          className="w-full py-3 bg-gradient-to-r from-primary to-indigo-600 hover:from-primary-fixed hover:to-indigo-500 text-deep-navy font-bold rounded-xl text-xs font-label-caps uppercase tracking-wider transition-all disabled:opacity-50 cursor-pointer shadow-lg shadow-primary/10 flex items-center justify-center gap-1.5"
+          className="w-full py-3.5 bg-gradient-to-r from-amber-200 via-amber-300 to-amber-400 hover:from-amber-100 hover:to-amber-300 text-stone-950 font-bold rounded-xl text-xs uppercase tracking-widest transition-all disabled:opacity-50 cursor-pointer shadow-[0_0_25px_rgba(243,229,171,0.4)] flex items-center justify-center gap-2"
         >
           {loading ? (
             <>
               <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
-              <span>Sedang Merangkai...</span>
+              <span>Sedang Merangkai Bait...</span>
             </>
           ) : (
             <>
               <span className="material-symbols-outlined text-sm">auto_awesome</span>
-              <span>Generate Puisi</span>
+              <span>Rangkai Puisi Baru</span>
             </>
           )}
         </button>
 
         {/* Status */}
         {status && (
-          <div className={`text-center text-xs p-3 rounded-lg bg-white/2 border border-white/5 ${statusColor} animate-fade-in-up font-serif italic`}>
+          <div className={`text-center text-xs p-3 rounded-xl bg-stone-950/80 border border-white/10 ${statusColor} animate-fade-in-up font-poem italic tracking-wide`}>
             {status}
           </div>
         )}

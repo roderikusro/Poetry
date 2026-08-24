@@ -20,23 +20,27 @@ app.get('/api/search', async (req, res) => {
   const query = req.query.q || '';
   
   try {
-    const pipedInstances = [
-      'https://pipedapi.kavin.rocks',
-      'https://pipedapi.us.to',
-      'https://piped-api.lunar.icu',
-      'https://api.piped.yt'
+    const invidiousInstances = [
+      'https://yt.chocolatemoo53.com',
+      'https://inv.thepixora.com',
+      'https://invidious.nerdvpn.de',
+      'https://invidious.f5.si'
     ];
     
     let data = null;
     let success = false;
     
-    for (const instance of pipedInstances) {
+    for (const instance of invidiousInstances) {
       try {
-        const searchUrl = `${instance}/search?q=${encodeURIComponent(query)}&filter=music_songs`;
-        const response = await fetch(searchUrl);
+        const searchUrl = `${instance}/api/v1/search?q=${encodeURIComponent(query)}&type=video`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
+        const response = await fetch(searchUrl, { signal: controller.signal });
+        clearTimeout(timeoutId);
         if (response.ok) {
-          data = await response.json();
-          if (data && Array.isArray(data.items)) {
+          const json = await response.json();
+          if (Array.isArray(json)) {
+            data = json;
             success = true;
             break;
           }
@@ -46,45 +50,15 @@ app.get('/api/search', async (req, res) => {
       }
     }
     
-    if (!success || !data || !data.items || data.items.length === 0) {
-      for (const instance of pipedInstances) {
-        try {
-          const searchUrl = `${instance}/search?q=${encodeURIComponent(query)}&filter=videos`;
-          const response = await fetch(searchUrl);
-          if (response.ok) {
-            data = await response.json();
-            if (data && Array.isArray(data.items)) {
-              success = true;
-              break;
-            }
-          }
-        } catch (e) {
-          // Try next
-        }
-      }
-    }
-    
-    if (success && data && Array.isArray(data.items)) {
-      const songs = data.items.map((item) => {
-        let youtubeUrl = '';
-        if (item.url) {
-          if (item.url.startsWith('http')) {
-            youtubeUrl = item.url;
-          } else {
-            const cleanPath = item.url.startsWith('/') ? item.url : `/${item.url}`;
-            youtubeUrl = `https://www.youtube.com${cleanPath}`;
-          }
-        }
-        
-        return {
-          title: item.title || 'Unknown Title',
-          artist: item.uploaderName || 'Unknown Artist',
-          icon: '🎵',
-          youtubeUrl: youtubeUrl,
-          thumbnail: item.thumbnail || '',
-          duration: item.duration || 0
-        };
-      });
+    if (success && data && Array.isArray(data)) {
+      const songs = data.map((item) => ({
+        title: item.title || 'Unknown Title',
+        artist: item.author || 'Unknown Artist',
+        icon: '🎵',
+        youtubeUrl: `https://www.youtube.com/watch?v=${item.videoId}`,
+        thumbnail: `https://img.youtube.com/vi/${item.videoId}/mqdefault.jpg`,
+        duration: item.lengthSeconds || 0
+      }));
       res.json(songs);
     } else {
       res.json([]);
@@ -129,7 +103,34 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 // Serve index.html for all other routes (SPA fallback)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+  const indexPath = path.join(__dirname, 'dist', 'index.html');
+  res.sendFile(indexPath, (err) => {
+    if (err && !res.headersSent) {
+      res.status(500).send(`
+        <!DOCTYPE html>
+        <html lang="id">
+        <head>
+          <meta charset="UTF-8">
+          <title>Roderikus Poetry - Server Notice</title>
+          <style>
+            body { font-family: system-ui, sans-serif; background: #080A15; color: #e2e8f0; display: flex; height: 100vh; align-items: center; justify-content: center; margin: 0; text-align: center; }
+            .card { background: rgba(18, 22, 42, 0.8); padding: 2rem 3rem; border-radius: 1.5rem; border: 1px solid rgba(243, 229, 171, 0.2); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+            h1 { color: #f3e5ab; margin-bottom: 0.5rem; }
+            p { color: #94a3b8; }
+            code { background: rgba(255,255,255,0.1); padding: 0.2rem 0.5rem; border-radius: 0.25rem; color: #c4b5fd; }
+          </style>
+        </head>
+        <body>
+          <div class="card">
+            <h1>Roderikus Poetry</h1>
+            <p>Berkas produksi (<code>dist/index.html</code>) belum siap atau sedang diperbarui.</p>
+            <p>Jalankan <code>npm run build</code> atau gunakan Vite Dev Server (<code>npm run dev</code>).</p>
+          </div>
+        </body>
+        </html>
+      `);
+    }
+  });
 });
 
 app.listen(PORT, () => {

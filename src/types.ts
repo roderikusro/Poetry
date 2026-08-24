@@ -13,6 +13,7 @@ export interface Poem {
   tags: Tag[];
   excerpt: string;
   stanzas: string[];
+  stanzaImages?: string[];
   lyrics?: string[];
   timestamps?: number[];
   songTitle?: string;

@@ -4,7 +4,7 @@ import { getPoems, defaultSongs, getYouTubeId, savePoems } from "./data/poetryDa
 import { memories, compliments } from "./data/gardenData";
 import { Poem, Song } from "./types";
 import * as THREE from "three";
-import { parseLrc, getActiveLyricIndex, TimedLyric } from "./data/musicUtils";
+import { formatTime } from "./data/musicUtils";
 
 // Import Custom Redesigned Components
 import PoemBrowserModal from "./components/PoemBrowserModal";
@@ -12,6 +12,45 @@ import GalleryModal from "./components/GalleryModal";
 import CopilotModal from "./components/CopilotModal";
 import AdminDashboard from "./components/AdminDashboard";
 import StellariumModal from "./components/StellariumModal";
+import Interactive3DPoemReader from "./components/Interactive3DPoemReader";
+import MusicSidebar from "./components/MusicSidebar";
+
+interface PlaylistProgressBarProps {
+  duration: number;
+  handleProgressBarSeek: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}
+
+function PlaylistProgressBar({ duration, handleProgressBarSeek }: PlaylistProgressBarProps) {
+  const [currentTime, setCurrentTime] = useState(0);
+
+  useEffect(() => {
+    const handleTimeUpdate = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setCurrentTime(customEvent.detail.currentTime);
+    };
+    window.addEventListener('music-time-update', handleTimeUpdate);
+    return () => {
+      window.removeEventListener('music-time-update', handleTimeUpdate);
+    };
+  }, []);
+
+  return (
+    <div className="space-y-1.5 font-sans">
+      <input 
+        type="range"
+        min="0"
+        max={duration || 100}
+        value={currentTime}
+        onChange={handleProgressBarSeek}
+        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
+      />
+      <div className="flex justify-between text-[9px] text-mist/50">
+        <span>{formatTime(currentTime)}</span>
+        <span>{formatTime(duration)}</span>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   // Navigation & Modal State
@@ -66,7 +105,6 @@ export default function App() {
   const ytPlayerRef = useRef<any>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(40); // 0 to 100
   const [isMuted, setIsMuted] = useState(false);
@@ -74,15 +112,6 @@ export default function App() {
   const [audioError, setAudioError] = useState<string | null>(null);
   const [shuffle, setShuffle] = useState(false);
   const [showMusicSidebar, setShowMusicSidebar] = useState(false);
-
-  // Tab State
-  const [activeMusicTab, setActiveMusicTab] = useState<'player' | 'search' | 'lyrics'>('player');
-
-  // Search States
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<Song[]>([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState<string | null>(null);
 
   // Queue & Favorites States
   const [customQueue, setCustomQueue] = useState<Song[]>([]);
@@ -94,13 +123,6 @@ export default function App() {
       return [];
     }
   });
-
-  // Lyrics States
-  const [lyricsLines, setLyricsLines] = useState<TimedLyric[]>([]);
-  const [lyricsLoading, setLyricsLoading] = useState(false);
-  const [lyricsError, setLyricsError] = useState<string | null>(null);
-  const [lyricsQueryTrack, setLyricsQueryTrack] = useState("");
-  const [lyricsQueryArtist, setLyricsQueryArtist] = useState("");
 
   // Helper functions
   const toggleFavorite = (song: Song) => {
@@ -132,59 +154,6 @@ export default function App() {
     showToast("Dihapus dari Antrean");
   };
 
-  const fetchLyrics = async (title: string, artist: string) => {
-    if (!title) return;
-    setLyricsLoading(true);
-    setLyricsError(null);
-    setLyricsQueryTrack(title);
-    setLyricsQueryArtist(artist);
-    try {
-      const response = await fetch(`/api/lyrics?track=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}`);
-      if (response.ok) {
-        const data = await response.json();
-        if (data.syncedLyrics) {
-          setLyricsLines(parseLrc(data.syncedLyrics));
-        } else if (data.plainLyrics) {
-          const lines = data.plainLyrics.split('\n').map((line: string, i: number) => ({
-            time: i * 99999,
-            text: line.trim()
-          })).filter((l: any) => l.text);
-          setLyricsLines(lines);
-        } else {
-          setLyricsLines([]);
-          setLyricsError("Lirik tidak ditemukan");
-        }
-      } else {
-        setLyricsLines([]);
-        setLyricsError("Lirik tidak ditemukan");
-      }
-    } catch (err) {
-      setLyricsLines([]);
-      setLyricsError("Gagal memuat lirik");
-    } finally {
-      setLyricsLoading(false);
-    }
-  };
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    setSearchLoading(true);
-    setSearchError(null);
-    try {
-      const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`);
-      if (response.ok) {
-        const data = await response.json();
-        setSearchResults(data);
-      } else {
-        setSearchError("Gagal mencari lagu");
-      }
-    } catch (err) {
-      setSearchError("Terjadi kesalahan jaringan");
-    } finally {
-      setSearchLoading(false);
-    }
-  };
 
   // Dynamic Spotify-like Active Playlist
   const activePlaylist = useMemo(() => {
@@ -236,26 +205,6 @@ export default function App() {
     return activePlaylist[currentTrackIndex] || defaultSongs[0];
   }, [currentTrackIndex, activePlaylist]);
 
-  // Lyric container ref for auto-scrolling
-  const lyricContainerRef = useRef<HTMLDivElement | null>(null);
-
-  // Active lyric index matching the current playback time
-  const activeLyricIndex = useMemo(() => {
-    return getActiveLyricIndex(lyricsLines, currentTime);
-  }, [lyricsLines, currentTime]);
-
-  // Scroll active lyric to center automatically
-  useEffect(() => {
-    if (activeMusicTab === 'lyrics' && lyricContainerRef.current) {
-      const activeEl = lyricContainerRef.current.querySelector('.lyric-line-active');
-      if (activeEl) {
-        activeEl.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }
-    }
-  }, [activeLyricIndex, activeMusicTab]);
 
   // Music active lyric/quote
   const trackQuote = useMemo(() => {
@@ -363,41 +312,20 @@ export default function App() {
       interval = setInterval(() => {
         try {
           const time = ytPlayerRef.current.getCurrentTime();
-          setCurrentTime(time);
           const dur = ytPlayerRef.current.getDuration();
           if (dur) setDuration(dur);
+          window.dispatchEvent(new CustomEvent('music-time-update', { detail: { currentTime: time, duration: dur || duration } }));
         } catch (e) {}
       }, 500);
     }
     return () => clearInterval(interval);
-  }, [isPlaying]);
-
-  // Auto-fetch lyrics when currentTrack changes
-  useEffect(() => {
-    if (currentTrack) {
-      const cleanTitle = currentTrack.title
-        .replace(/\(Official[^\)]*\)/gi, '')
-        .replace(/\[Official[^\)]*\]/gi, '')
-        .replace(/\(Video[^\)]*\)/gi, '')
-        .replace(/\[Video[^\)]*\]/gi, '')
-        .replace(/\(Lyrics[^\)]*\)/gi, '')
-        .replace(/\[Lyrics[^\)]*\]/gi, '')
-        .replace(/\(Audio[^\)]*\)/gi, '')
-        .replace(/\[Audio[^\)]*\]/gi, '')
-        .replace(/\(Official Music Video\)/gi, '')
-        .replace(/&/g, 'and')
-        .trim();
-      fetchLyrics(cleanTitle, currentTrack.artist);
-    } else {
-      setLyricsLines([]);
-    }
-  }, [currentTrack]);
+  }, [isPlaying, duration]);
 
 
   // Load video when track index changes
   const playTrack = (index: number, autoplay = true) => {
     setCurrentTrackIndex(index);
-    setCurrentTime(0);
+    window.dispatchEvent(new CustomEvent('music-time-update', { detail: { currentTime: 0, duration: 0 } }));
     const track = activePlaylist[index];
     if (track) {
       const vidId = getYouTubeId(track.youtubeUrl);
@@ -467,7 +395,8 @@ export default function App() {
 
   const handleProgressBarSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const time = parseFloat(e.target.value);
-    setCurrentTime(time);
+    const dur = ytPlayerRef.current ? ytPlayerRef.current.getDuration() : duration;
+    window.dispatchEvent(new CustomEvent('music-time-update', { detail: { currentTime: time, duration: dur || duration } }));
     if (ytPlayerRef.current && ytPlayerRef.current.seekTo) {
       ytPlayerRef.current.seekTo(time, true);
     }
@@ -477,7 +406,8 @@ export default function App() {
   const seekTo = (seconds: number) => {
     if (ytPlayerRef.current && ytPlayerRef.current.seekTo) {
       ytPlayerRef.current.seekTo(seconds, true);
-      setCurrentTime(seconds);
+      const dur = ytPlayerRef.current ? ytPlayerRef.current.getDuration() : duration;
+      window.dispatchEvent(new CustomEvent('music-time-update', { detail: { currentTime: seconds, duration: dur || duration } }));
       if (!isPlaying) {
         ytPlayerRef.current.playVideo();
         setIsPlaying(true);
@@ -1191,50 +1121,53 @@ export default function App() {
         <span className="floating-item">✧</span>
       </div>
 
-      {/* Header Bar */}
+      {/* Header Bar HUD */}
       <motion.header 
         style={{
           y: headerY,
           opacity: headerOpacity
         }}
-        className="relative z-20 w-full flex justify-between items-center px-6 md:px-12 py-5" 
+        className="relative z-20 w-full px-6 md:px-12 py-5 flex justify-center items-center" 
       >
-        <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-starlight text-3xl drop-shadow-[0_0_12px_rgba(255,243,176,0.6)] select-none animate-bounce">
-            history_edu
-          </span>
-          <span className="font-display text-xl md:text-2xl font-bold text-starlight tracking-wide">
-            Roderikus Poetry
-          </span>
-        </div>
-        
-        <div className="flex items-center gap-3 md:gap-4">
-          <button 
-            onClick={handleSecretAreaClick}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-xs font-label-caps text-secondary tracking-widest hover:bg-glow-gold/10 hover:border-secondary transition-all"
-            title="Klik bintang rahasia"
-          >
-            <span className={`material-symbols-outlined text-xs ${secretUnlocked ? 'text-secondary font-fill' : 'text-mist'}`} style={{ fontVariationSettings: secretUnlocked ? "'FILL' 1" : undefined }}>
-              auto_awesome
+        <div className="w-full max-w-5xl flex justify-between items-center glass-award px-5 py-2.5 rounded-full border border-white/10 shadow-lg">
+          <div className="flex items-center gap-2.5 group cursor-pointer" onClick={() => scrollProgressValue.set(0)}>
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-amber-200/20 via-violet-400/20 to-cyan-400/20 border border-white/20 flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+              <span className="material-symbols-outlined text-secondary text-lg select-none">
+                auto_stories
+              </span>
+            </div>
+            <span className="font-display text-base md:text-lg font-bold tracking-wider text-sharlight font-serif">
+              RODERIKUS POETRY
             </span>
-            {secretUnlocked ? "Rahasia Terbuka" : "Cari Bintang ✦"}
-          </button>
+          </div>
+          
+          <div className="flex items-center gap-1.5 md:gap-2">
+            <button 
+              onClick={handleSecretAreaClick}
+              className="p-2 rounded-full text-mist hover:text-secondary hover:bg-white/5 transition-all cursor-pointer"
+              title="Cari Bintang Rahasia"
+            >
+              <span className={`material-symbols-outlined text-base ${secretUnlocked ? 'text-secondary font-fill' : 'text-mist'}`} style={{ fontVariationSettings: secretUnlocked ? "'FILL' 1" : undefined }}>
+                auto_awesome
+              </span>
+            </button>
 
-          <button
-            onClick={() => setShowMusicSidebar(true)}
-            className="material-symbols-outlined p-2 text-mist hover:text-secondary hover:scale-105 transition-all hover:bg-white/10 rounded-full cursor-pointer"
-            title="Pemutar Musik"
-          >
-            music_note
-          </button>
+            <button
+              onClick={() => setShowMusicSidebar(true)}
+              className="p-2 rounded-full text-mist hover:text-secondary hover:bg-white/5 transition-all cursor-pointer"
+              title="Pemutar Musik"
+            >
+              <span className="material-symbols-outlined text-base">music_note</span>
+            </button>
 
-          <button
-            onClick={() => setActiveModal('settings')}
-            className="material-symbols-outlined p-2 text-mist hover:text-starlight hover:scale-105 transition-all hover:bg-white/10 rounded-full cursor-pointer"
-            title="Pengaturan"
-          >
-            settings
-          </button>
+            <button
+              onClick={() => setActiveModal('settings')}
+              className="p-2 text-mist hover:text-starlight hover:bg-white/5 transition-all rounded-full cursor-pointer flex items-center justify-center"
+              title="Pengaturan"
+            >
+              <span className="material-symbols-outlined text-base">settings</span>
+            </button>
+          </div>
         </div>
       </motion.header>
 
@@ -1403,7 +1336,7 @@ export default function App() {
         </div>
 
         {/* Hero typography column */}
-        <div className="relative z-10 max-w-2xl space-y-4 flex flex-col items-center">
+        <div className="relative z-10 max-w-3xl space-y-5 flex flex-col items-center">
           <motion.div
             style={{ 
               opacity: heroOpacity,
@@ -1411,21 +1344,21 @@ export default function App() {
               pointerEvents: heroPointerEvents,
               display: heroDisplay
             }}
-            className="space-y-4"
+            className="space-y-3 text-center"
           >
-            <h2 className="font-display text-4.5xl md:text-6xl text-starlight leading-tight tracking-wide font-extrabold">
+            <h2 className="font-display text-4xl sm:text-5xl md:text-6xl text-starlight leading-tight font-extrabold tracking-tight">
               Menyimpan Percakapan <br/>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary-fixed to-secondary">
+              <span className="text-shimmer-gold text-glow-aurora italic font-serif inline-block hover:scale-105 transition-transform duration-500 cursor-default">
                 Dalam Kepala.
               </span>
             </h2>
             
-            <p className="font-serif italic text-mist/85 text-sm md:text-base leading-relaxed max-w-prose mx-auto">
-              "Sebuah novel tentang sunyi, dari manusia yang merindukan keindahan susunan kata..."
+            <p className="font-poem italic text-mist/80 text-sm md:text-lg leading-relaxed max-w-prose mx-auto font-light tracking-wide">
+              "Sebuah novel tentang sunyi, dari jiwa yang merangkai getar asa di hamparan rasi bintang..."
             </p>
           </motion.div>
 
-          {/* Compliments panel (rotating quote boxes) */}
+          {/* Compliments panel (streamlined rotating quote line) */}
           <motion.div
             style={{
               opacity: complimentsOpacity,
@@ -1433,22 +1366,15 @@ export default function App() {
               x: complimentsX,
               display: complimentsDisplayValue
             }}
-            className={`w-full max-w-xs md:max-w-sm mx-auto p-2.5 md:p-3 rounded-xl glass-panel border border-white/5 shadow-md relative hidden sm:block ${
+            className={`w-full max-w-md mx-auto py-1 px-4 text-center hidden sm:block ${
               activeStep === 2 ? "hidden md:block" : ""
             }`}
           >
-            <div className="flex items-center gap-2 mb-2 text-primary">
-              <span className="material-symbols-outlined text-sm font-fill">format_quote</span>
-              <span className="text-[9px] tracking-wider uppercase font-semibold font-label-caps">Kelopak Rasa</span>
-            </div>
-            
-            <div className="min-h-[50px] flex items-center justify-center">
-              <p className={`font-poem italic text-xs leading-relaxed text-stone-200 transition-all duration-500 ${
-                isChangingCompliment ? "opacity-0 translate-y-1" : "opacity-100 translate-y-0"
-              }`}>
-                {activeStep === 2 ? trackQuote : `"${compliments[complimentIndex].text}"`}
-              </p>
-            </div>
+            <p className={`font-poem italic text-xs leading-relaxed text-secondary/90 transition-all duration-500 ${
+              isChangingCompliment ? "opacity-0 translate-y-1" : "opacity-100 translate-y-0"
+            }`}>
+              {activeStep === 2 ? trackQuote : `"${compliments[complimentIndex].text}"`}
+            </p>
           </motion.div>
 
           {/* Phase 0 Flowers (Now in Normal Flex Flow to prevent overlap) */}
@@ -1530,56 +1456,8 @@ export default function App() {
               </button>
 
             </div>
-
-            <p className="text-[10px] md:text-xs font-medium text-mist/50 tracking-widest animate-pulse mt-3">
-              Klik bunga atau bulan untuk mulai menjelajah
-            </p>
-
-            {/* Hidden Admin Access in Footer */}
-            <button 
-              onClick={() => setActiveModal('admin')} 
-              className="text-[9px] text-mist/10 hover:text-mist/40 transition-colors mt-1 cursor-pointer focus:outline-none"
-              aria-label="Admin Access"
-            >
-              🔐 Admin Panel Link
-            </button>
           </motion.div>
         </div>
-
-        {/* Scroll Zoom Indicator Banners */}
-        <AnimatePresence>
-          {bannerStep === 0 ? (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 0.55, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute bottom-28 md:bottom-32 flex flex-col items-center gap-1.5 text-[10px] text-white/50 tracking-[0.2em] font-sans uppercase pointer-events-none select-none"
-            >
-              <span className="text-glow-lavender animate-pulse">Scroll ke bawah untuk mendekati rembulan</span>
-              <span className="material-symbols-outlined text-xs animate-[bounce_1.5s_infinite]">keyboard_double_arrow_down</span>
-            </motion.div>
-          ) : bannerStep === 1 ? (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 0.65, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-28 md:bottom-32 flex flex-col items-center gap-1.5 text-[10px] text-glow-blue tracking-[0.2em] font-sans uppercase pointer-events-none select-none"
-            >
-              <span className="text-sky-300 select-none">Menatap Bintang Utama • Scroll lagi untuk playlist</span>
-              <span className="material-symbols-outlined text-xs animate-[bounce_1.5s_infinite] text-sky-400/80">keyboard_double_arrow_down</span>
-            </motion.div>
-          ) : bannerStep === 2 ? (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 0.65, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="absolute bottom-28 md:bottom-32 flex flex-col items-center gap-1.5 text-[10px] text-glow-blue tracking-[0.2em] font-sans uppercase pointer-events-none select-none"
-            >
-              <span className="text-sky-300 select-none">Melodi Malam Syahdu • Scroll ke atas untuk kembali</span>
-              <span className="material-symbols-outlined text-xs animate-[bounce_1.5s_infinite_reverse] text-sky-400/80">keyboard_double_arrow_up</span>
-            </motion.div>
-          ) : null}
-        </AnimatePresence>
 
         {/* Phase navigator rail */}
         <div className="absolute left-6 md:left-12 top-1/2 transform -translate-y-1/2 z-30 hidden sm:block select-none" id="sidebar-navigator">
@@ -1751,20 +1629,7 @@ export default function App() {
             </div>
 
             {/* Custom Seeker Progress slider */}
-            <div className="space-y-1.5 font-sans">
-              <input 
-                type="range"
-                min="0"
-                max={duration || 100}
-                value={currentTime}
-                onChange={handleProgressBarSeek}
-                className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
-              />
-              <div className="flex justify-between text-[9px] text-mist/50">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
-            </div>
+            <PlaylistProgressBar duration={duration} handleProgressBarSeek={handleProgressBarSeek} />
 
             {/* Tracks List Panel */}
             <div className="space-y-2">
@@ -1838,7 +1703,7 @@ export default function App() {
 
       {/* Global Modals container overlay */}
       <AnimatePresence>
-        {activeModal && activeModal !== 'stellarium' && (
+        {activeModal && activeModal !== 'stellarium' && activeModal !== 'puisi' && (
           <motion.div
             key="modal-overlay"
             initial={{ opacity: 0 }}
@@ -1895,7 +1760,6 @@ export default function App() {
                       setPoetryView={setPoetryView}
                       showToast={showToast}
                       isPlaying={isPlaying}
-                      currentTime={currentTime}
                       seekTo={seekTo}
                       currentTrackIndex={currentTrackIndex}
                       playlistData={activePlaylist}
@@ -2104,487 +1968,68 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Full screen 3D Sphere Poetry Reader */}
+      <AnimatePresence>
+        {activeModal === 'puisi' && (
+          <motion.div
+            key="puisi-3d-overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50"
+          >
+            <Interactive3DPoemReader
+              poem={poemsState[poemIndex] || poemsState[0]}
+              allPoems={poemsState}
+              onSelectPoem={(p) => {
+                const idx = poemsState.findIndex((x) => x.id === p.id);
+                if (idx > -1) setPoemIndex(idx);
+              }}
+              onClose={() => setActiveModal(null)}
+              showToast={showToast}
+              isPlaying={isPlaying}
+              seekTo={seekTo}
+              onPlaySongFromPoem={handlePlaySongFromPoem}
+              onNextPoem={() => changePoem("next")}
+              onPrevPoem={() => changePoem("prev")}
+              poemIndex={poemIndex}
+              totalPoems={poemsState.length}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Music Sidebar (Left Drawer) */}
       <AnimatePresence>
         {showMusicSidebar && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowMusicSidebar(false)}
-              className="fixed inset-0 bg-stone-950/60 backdrop-blur-xs z-50 cursor-pointer"
-            />
-
-            {/* Sidebar panel */}
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 28, stiffness: 220 }}
-              className="fixed inset-y-0 left-0 w-80 sm:w-96 bg-stone-950/90 backdrop-blur-2xl border-r border-white/10 z-[60] shadow-2xl flex flex-col p-6 text-left overflow-hidden"
-            >
-              {/* Dynamic Cover Glow */}
-              <div className="absolute inset-0 -z-10 opacity-20 blur-3xl pointer-events-none transition-all duration-1000">
-                {currentTrack.thumbnail ? (
-                  <div 
-                    className="w-full h-full bg-cover bg-center scale-150 transition-all duration-1000 animate-pulse"
-                    style={{ backgroundImage: `url(${currentTrack.thumbnail})` }}
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-tr from-secondary/35 via-primary/20 to-purple-500/20" />
-                )}
-              </div>
-
-              {/* Header */}
-              <div className="flex items-center justify-between pb-4 border-b border-white/5 mb-4">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-secondary text-2xl font-fill animate-pulse">
-                    music_note
-                  </span>
-                  <div>
-                    <h3 className="font-display text-lg text-starlight font-bold tracking-wide">
-                      Simfoni Angkasa
-                    </h3>
-                    <p className="text-[9px] text-mist/40 uppercase tracking-widest font-mono">Metrolist Web System</p>
-                  </div>
-                </div>
-                
-                <button
-                  onClick={() => setShowMusicSidebar(false)}
-                  className="material-symbols-outlined p-1 text-mist hover:text-starlight hover:rotate-90 transition-all rounded-full hover:bg-white/15 cursor-pointer"
-                  title="Tutup Sidebar"
-                >
-                  close
-                </button>
-              </div>
-
-              {/* Tabs Navigation */}
-              <div className="flex bg-white/5 rounded-xl p-1 mb-4 text-[10px] font-semibold border border-white/5 tracking-wider uppercase font-mono">
-                <button
-                  onClick={() => setActiveMusicTab('player')}
-                  className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
-                    activeMusicTab === 'player' ? 'bg-secondary text-stone-950 font-bold shadow-md' : 'text-mist hover:text-starlight'
-                  }`}
-                >
-                  Player
-                </button>
-                <button
-                  onClick={() => setActiveMusicTab('search')}
-                  className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
-                    activeMusicTab === 'search' ? 'bg-secondary text-stone-950 font-bold shadow-md' : 'text-mist hover:text-starlight'
-                  }`}
-                >
-                  Cari Lagu
-                </button>
-                <button
-                  onClick={() => setActiveMusicTab('lyrics')}
-                  className={`flex-1 py-1.5 rounded-lg text-center transition-all cursor-pointer ${
-                    activeMusicTab === 'lyrics' ? 'bg-secondary text-stone-950 font-bold shadow-md' : 'text-mist hover:text-starlight'
-                  }`}
-                >
-                  Lirik
-                </button>
-              </div>
-
-              {/* Dynamic Tab Contents */}
-              <div className="flex-1 flex flex-col min-h-0">
-                {activeMusicTab === 'player' && (
-                  <div className="flex-1 flex flex-col min-h-0 justify-between">
-                    {/* Vinyl Spinner Container */}
-                    <div className="flex flex-col items-center justify-center my-2 select-none">
-                      <div className="relative w-36 h-36 rounded-full bg-stone-900 border-4 border-stone-800 shadow-2xl flex items-center justify-center overflow-hidden">
-                        {/* Concentric rings of vinyl */}
-                        <div className="absolute inset-1 border border-stone-700/20 rounded-full" />
-                        <div className="absolute inset-2 border border-stone-700/25 rounded-full" />
-                        <div className="absolute inset-3 border border-stone-700/20 rounded-full" />
-                        <div className="absolute inset-5 border border-stone-750/30 rounded-full" />
-                        <div className="absolute inset-8 border border-stone-800/40 rounded-full" />
-                        <div className="absolute inset-12 border border-stone-850/50 rounded-full" />
-                        
-                        {/* Center album art/emoji */}
-                        <motion.div
-                          animate={{ rotate: isPlaying ? 360 : 0 }}
-                          transition={isPlaying ? { repeat: Infinity, duration: 12, ease: "linear" } : {}}
-                          className="w-14 h-14 rounded-full bg-stone-950 flex items-center justify-center p-0.5 shadow-inner z-10 overflow-hidden border border-white/10"
-                        >
-                          {currentTrack.thumbnail ? (
-                            <img src={currentTrack.thumbnail} alt={currentTrack.title} className="w-full h-full object-cover rounded-full" />
-                          ) : (
-                            <div className="w-full h-full rounded-full bg-gradient-to-br from-[#d2c888] to-[#f5d061] flex items-center justify-center">
-                              <span className="text-xl select-none">{currentTrack.icon || "🎵"}</span>
-                            </div>
-                          )}
-                        </motion.div>
-                        
-                        {/* Vinyl center pinhole */}
-                        <div className="absolute w-2 h-2 rounded-full bg-stone-950 border border-white/20 z-20" />
-                      </div>
-
-                      {/* Song Meta info */}
-                      <div className="text-center mt-3 w-full px-2">
-                        <h4 className="text-sm font-semibold text-starlight tracking-wide truncate">
-                          {currentTrack.title}
-                        </h4>
-                        <p className="text-[11px] text-mist/60 truncate mt-0.5">
-                          {currentTrack.artist}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Seeker Slider */}
-                    <div className="space-y-1 my-2 font-sans px-2">
-                      <input 
-                        type="range"
-                        min="0"
-                        max={duration || 100}
-                        value={currentTime}
-                        onChange={handleProgressBarSeek}
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
-                      />
-                      <div className="flex justify-between text-[9px] text-mist/40">
-                        <span>{formatTime(currentTime)}</span>
-                        <span>{formatTime(duration)}</span>
-                      </div>
-                    </div>
-
-                    {/* Playback Controls */}
-                    <div className="flex items-center justify-center gap-5 my-1">
-                      {/* Shuffle Button */}
-                      <button
-                        onClick={() => setShuffle(!shuffle)}
-                        className={`material-symbols-outlined text-lg cursor-pointer transition-all ${
-                          shuffle ? "text-secondary drop-shadow-[0_0_8px_#d2c888]" : "text-mist/50 hover:text-mist"
-                        }`}
-                        title="Acak Lagu"
-                      >
-                        shuffle
-                      </button>
-
-                      {/* Prev Button */}
-                      <button 
-                        onClick={handlePrevTrack}
-                        className="material-symbols-outlined text-mist hover:text-starlight text-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                        title="Lagu Sebelumnya"
-                      >
-                        skip_previous
-                      </button>
-
-                      {/* Play/Pause Button */}
-                      <button 
-                        onClick={togglePlay}
-                        className="material-symbols-outlined text-stone-950 bg-secondary hover:bg-yellow-400 p-3 rounded-full text-xl transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-lg shadow-secondary/25"
-                        title={isPlaying ? "Jeda" : "Putar"}
-                      >
-                        {isPlaying ? "pause" : "play_arrow"}
-                      </button>
-
-                      {/* Next Button */}
-                      <button 
-                        onClick={handleNextTrack}
-                        className="material-symbols-outlined text-mist hover:text-starlight text-2xl transition-transform hover:scale-110 active:scale-95 cursor-pointer"
-                        title="Lagu Berikutnya"
-                      >
-                        skip_next
-                      </button>
-
-                      {/* Volume Mute Button */}
-                      <button 
-                        onClick={toggleMute}
-                        className={`material-symbols-outlined text-lg cursor-pointer transition-all ${
-                          isMuted || volume === 0 ? "text-red-400" : "text-mist/50 hover:text-mist"
-                        }`}
-                        title="Bisukan"
-                      >
-                        {isMuted || volume === 0 ? "volume_off" : volume < 50 ? "volume_down" : "volume_up"}
-                      </button>
-                    </div>
-
-                    {/* Volume Slider */}
-                    <div className="flex items-center gap-2 px-6 my-1">
-                      <span className="material-symbols-outlined text-xs text-mist/40">volume_down</span>
-                      <input 
-                        type="range"
-                        min="0"
-                        max="100"
-                        value={isMuted ? 0 : volume}
-                        onChange={handleVolumeChange}
-                        className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-secondary"
-                      />
-                      <span className="material-symbols-outlined text-xs text-mist/40">volume_up</span>
-                    </div>
-
-                    {/* Sub-tab view: Active Playlist & Queue */}
-                    <div className="flex-1 flex flex-col min-h-0 mt-3 border-t border-white/5 pt-3">
-                      <div className="flex items-center justify-between mb-2 px-1">
-                        <span className="text-[9px] font-semibold tracking-widest text-mist/40 font-label-caps uppercase">
-                          Daftar Lagu ({activePlaylist.length})
-                        </span>
-                        {customQueue.length > 0 && (
-                          <button 
-                            onClick={() => { setCustomQueue([]); showToast("Antrean dibersihkan"); }}
-                            className="text-[8px] uppercase tracking-wider text-red-400/70 hover:text-red-400 font-mono"
-                          >
-                            Hapus Antrean
-                          </button>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 overflow-y-auto scrollbar-styled pr-1 space-y-1">
-                        {activePlaylist.map((track, i) => {
-                          const isFav = favorites.some(f => f.youtubeUrl === track.youtubeUrl);
-                          return (
-                            <div
-                              key={i}
-                              className={`w-full text-left px-3 py-1.5 rounded-xl text-xs flex items-center justify-between gap-2 transition-all ${
-                                currentTrackIndex === i 
-                                  ? 'bg-secondary/10 text-secondary border-l-2 border-secondary font-semibold' 
-                                  : 'hover:bg-white/5 text-mist'
-                              }`}
-                            >
-                              <button
-                                onClick={() => playTrack(i)}
-                                className="truncate flex-1 text-left cursor-pointer"
-                              >
-                                <p className="truncate font-medium">{track.title}</p>
-                                <p className="truncate font-light text-[9px] opacity-60 mt-0.5">
-                                  {track.artist} {customQueue.some(q => q.youtubeUrl === track.youtubeUrl) && <span className="text-[8px] bg-secondary/20 text-secondary px-1 py-0.2 rounded font-mono ml-1">Antrean</span>}
-                                </p>
-                              </button>
-                              
-                              <div className="flex items-center gap-1">
-                                <button 
-                                  onClick={() => toggleFavorite(track)}
-                                  className={`material-symbols-outlined text-[14px] cursor-pointer hover:scale-115 transition-transform ${
-                                    isFav ? 'text-red-400 font-fill' : 'text-mist/30 hover:text-mist'
-                                  }`}
-                                >
-                                  favorite
-                                </button>
-                                {currentTrackIndex === i && isPlaying && (
-                                  <span className="material-symbols-outlined text-xs animate-pulse text-secondary">
-                                    graphic_eq
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeMusicTab === 'search' && (
-                  <div className="flex-1 flex flex-col min-h-0">
-                    {/* Search Form */}
-                    <form onSubmit={handleSearch} className="flex gap-2 mb-3">
-                      <input
-                        type="text"
-                        placeholder="Cari judul lagu atau artis..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-starlight placeholder-mist/40 focus:outline-none focus:border-secondary/50 font-sans"
-                      />
-                      <button
-                        type="submit"
-                        disabled={searchLoading}
-                        className="bg-secondary text-stone-950 rounded-xl px-3 py-2 text-xs font-semibold hover:bg-yellow-400 disabled:opacity-50 flex items-center justify-center cursor-pointer shadow-lg shadow-secondary/15"
-                      >
-                        {searchLoading ? (
-                          <div className="w-4 h-4 border-2 border-stone-950 border-t-transparent rounded-full animate-spin" />
-                        ) : (
-                          <span className="material-symbols-outlined text-sm">search</span>
-                        )}
-                      </button>
-                    </form>
-
-                    {/* Search Results */}
-                    {searchError && (
-                      <div className="text-center py-4 text-xs text-red-400/80 font-medium">
-                        {searchError}
-                      </div>
-                    )}
-
-                    {searchResults.length === 0 && !searchLoading && !searchError && (
-                      <div className="text-center py-10 text-xs text-mist/30 font-medium font-sans">
-                        Ketik dan cari lagu kesukaanmu dari YouTube Music.
-                      </div>
-                    )}
-
-                    <div className="flex-1 overflow-y-auto scrollbar-styled pr-1 space-y-1">
-                      {searchResults.map((song, i) => {
-                        const isFav = favorites.some(f => f.youtubeUrl === song.youtubeUrl);
-                        return (
-                          <div 
-                            key={i}
-                            className="w-full flex items-center justify-between p-2 rounded-xl hover:bg-white/5 transition-all text-xs border border-transparent hover:border-white/5 gap-2"
-                          >
-                            {/* Song thumbnail/info */}
-                            <div className="flex items-center gap-2 truncate flex-1">
-                              {song.thumbnail ? (
-                                <img src={song.thumbnail} alt={song.title} className="w-9 h-9 object-cover rounded-lg shadow-md shrink-0 border border-white/5" />
-                              ) : (
-                                <div className="w-9 h-9 bg-white/10 rounded-lg flex items-center justify-center shrink-0">
-                                  <span className="text-sm">🎵</span>
-                                </div>
-                              )}
-                              <div className="truncate">
-                                <h5 className="font-semibold text-starlight truncate">{song.title}</h5>
-                                <p className="text-[10px] text-mist/60 truncate mt-0.5">{song.artist}</p>
-                              </div>
-                            </div>
-
-                            {/* Actions */}
-                            <div className="flex items-center gap-1 shrink-0">
-                              {/* Play directly */}
-                              <button
-                                onClick={() => {
-                                  // Add to queue and play immediately
-                                  setCustomQueue(prev => {
-                                    const filtered = prev.filter(q => q.youtubeUrl !== song.youtubeUrl);
-                                    return [song, ...filtered];
-                                  });
-                                  setTimeout(() => {
-                                    playTrack(0);
-                                    setActiveMusicTab('player');
-                                  }, 100);
-                                }}
-                                className="material-symbols-outlined text-[18px] text-secondary hover:scale-115 transition-transform cursor-pointer p-1 rounded-full hover:bg-white/10"
-                                title="Putar Sekarang"
-                              >
-                                play_circle
-                              </button>
-                              
-                              {/* Add to queue */}
-                              <button
-                                onClick={() => addToQueue(song)}
-                                className="material-symbols-outlined text-[18px] text-mist/60 hover:text-starlight hover:scale-115 transition-transform cursor-pointer p-1 rounded-full hover:bg-white/10"
-                                title="Tambah ke Antrean"
-                              >
-                                queue_music
-                              </button>
-
-                              {/* Toggle favorite */}
-                              <button
-                                onClick={() => toggleFavorite(song)}
-                                className={`material-symbols-outlined text-[18px] cursor-pointer hover:scale-115 transition-transform p-1 rounded-full hover:bg-white/10 ${
-                                  isFav ? 'text-red-400 font-fill' : 'text-mist/30 hover:text-mist'
-                                }`}
-                                title={isFav ? "Hapus dari Favorit" : "Tambah ke Favorit"}
-                              >
-                                favorite
-                              </button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {activeMusicTab === 'lyrics' && (
-                  <div className="flex-1 flex flex-col min-h-0">
-                    {/* Manual Lyrics Search Helper if mismatched */}
-                    <div className="bg-white/5 border border-white/5 rounded-xl p-2.5 mb-3 text-xs">
-                      <details className="cursor-pointer group">
-                        <summary className="text-[10px] font-semibold text-mist/50 hover:text-starlight select-none font-mono uppercase flex justify-between items-center">
-                          <span>Cocokkan Lirik Manual</span>
-                          <span className="material-symbols-outlined text-xs group-open:rotate-180 transition-transform">expand_more</span>
-                        </summary>
-                        <div className="mt-2 space-y-2 pt-2 border-t border-white/5 cursor-default">
-                          <div className="flex gap-2">
-                            <input
-                              type="text"
-                              placeholder="Judul lagu..."
-                              value={lyricsQueryTrack}
-                              onChange={(e) => setLyricsQueryTrack(e.target.value)}
-                              className="w-1/2 bg-stone-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-starlight focus:outline-none"
-                            />
-                            <input
-                              type="text"
-                              placeholder="Artis..."
-                              value={lyricsQueryArtist}
-                              onChange={(e) => setLyricsQueryArtist(e.target.value)}
-                              className="w-1/2 bg-stone-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-starlight focus:outline-none"
-                            />
-                          </div>
-                          <button
-                            onClick={() => fetchLyrics(lyricsQueryTrack, lyricsQueryArtist)}
-                            className="w-full bg-secondary text-stone-950 font-semibold text-[10px] py-1.5 rounded-lg hover:bg-yellow-400 cursor-pointer text-center"
-                          >
-                            Cari Lirik
-                          </button>
-                        </div>
-                      </details>
-                    </div>
-
-                    {/* Lyrics Display */}
-                    {lyricsLoading ? (
-                      <div className="flex-1 flex flex-col items-center justify-center gap-2">
-                        <div className="w-6 h-6 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
-                        <span className="text-[11px] text-mist/40 font-mono">Mencari lirik...</span>
-                      </div>
-                    ) : lyricsError ? (
-                      <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-                        <span className="material-symbols-outlined text-3xl text-mist/20 mb-2">lyrics</span>
-                        <p className="text-xs text-mist/50">{lyricsError}</p>
-                      </div>
-                    ) : lyricsLines.length === 0 ? (
-                      <div className="flex-1 flex flex-col items-center justify-center text-center px-4">
-                        <span className="material-symbols-outlined text-3xl text-mist/20 mb-2">music_note</span>
-                        <p className="text-xs text-mist/50">Lirik tidak tersedia</p>
-                      </div>
-                    ) : (
-                      <div 
-                        ref={lyricContainerRef}
-                        className="flex-1 overflow-y-auto scrollbar-styled pr-1 py-10 space-y-4 font-sans mask-lyrics"
-                      >
-                        {lyricsLines.map((line, i) => {
-                          const isActive = activeLyricIndex === i;
-                          const isPlain = line.time >= 99999;
-                          return (
-                            <button
-                              key={i}
-                              onClick={() => {
-                                if (!isPlain) {
-                                  seekTo(line.time);
-                                }
-                              }}
-                              className={`w-full text-left py-1.5 px-3 rounded-xl transition-all text-xs sm:text-sm leading-relaxed cursor-pointer block ${
-                                isActive 
-                                  ? 'lyric-line-active text-secondary font-bold scale-102 bg-white/5 border border-white/5 shadow-inner' 
-                                  : 'text-mist/70 hover:text-starlight hover:bg-white/5 border border-transparent'
-                              }`}
-                            >
-                              {line.text}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Footer YouTube Link */}
-              {currentTrack.youtubeUrl && (
-                <div className="pt-3 border-t border-white/5 mt-3">
-                  <a 
-                    href={currentTrack.youtubeUrl} 
-                    target="_blank" 
-                    rel="noreferrer" 
-                    className="flex items-center justify-center gap-1.5 w-full py-2 bg-stone-900 border border-white/10 hover:border-secondary/35 rounded-xl text-[10px] font-label-caps uppercase tracking-wider text-mist hover:text-secondary font-semibold transition-all"
-                  >
-                    <span className="material-symbols-outlined text-xs">open_in_new</span>
-                    <span>Buka di YouTube</span>
-                  </a>
-                </div>
-              )}
-
-            </motion.div>
-          </>
+          <MusicSidebar
+            onClose={() => setShowMusicSidebar(false)}
+            isPlaying={isPlaying}
+            togglePlay={togglePlay}
+            currentTrack={currentTrack}
+            currentTrackIndex={currentTrackIndex}
+            activePlaylist={activePlaylist}
+            playTrack={playTrack}
+            handlePrevTrack={handlePrevTrack}
+            handleNextTrack={handleNextTrack}
+            favorites={favorites}
+            toggleFavorite={toggleFavorite}
+            customQueue={customQueue}
+            addToQueue={addToQueue}
+            removeFromQueue={removeFromQueue}
+            setCustomQueue={setCustomQueue}
+            showToast={showToast}
+            shuffle={shuffle}
+            setShuffle={setShuffle}
+            volume={volume}
+            isMuted={isMuted}
+            toggleMute={toggleMute}
+            handleVolumeChange={handleVolumeChange}
+            handleProgressBarSeek={handleProgressBarSeek}
+            seekTo={seekTo}
+            duration={duration}
+          />
         )}
       </AnimatePresence>
 
